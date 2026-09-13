@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Личный кабинет — Dragon VPN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&family=Great+Vibes&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="icon" type="image/png" href="/icon-dark-32x32.png">
+<link rel="apple-touch-icon" href="/apple-icon.png">
+<!-- QR-код: библиотека qrcode.js через CDN -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
+<!-- Флаги-эмодзи стран серверов: Windows не рендерит их родным шрифтом,
+     Twemoji подменяет на картинки — одинаково выглядит везде. -->
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" integrity="sha384-32KMvAMS4DUBcQtHG6fzADguo/tpN1Nh6BAJa2QqZc6/i0K+YPQE+bWiqBRAWuFs" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="/index.html" class="logo">
+      <span class="logo-text">Dragon<span>VPN</span></span>
+    </a>
+    <div class="nav-actions">
+      <a href="/index.html" class="nav-link">На главную</a>
+      <button class="btn-ghost logout-btn" id="logout-btn">Выйти</button>
+    </div>
+    <button class="nav-burger" id="nav-burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav-mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile-menu" id="nav-mobile-menu">
+    <a href="/index.html" class="nav-mobile-link">На главную</a>
+    <button class="nav-mobile-buy logout-btn" type="button">Выйти</button>
+    <div class="nav-mobile-divider"></div>
+    <a href="https://t.me/DragonPNBot" class="nav-mobile-link">Политика</a>
+    <a href="https://t.me/DragonPNBot" class="nav-mobile-link">Условия</a>
+    <a href="https://t.me/DragonVPNSupport" class="nav-mobile-link">Поддержка</a>
+  </div>
+</nav>
+
+<main class="dash-body">
+  <div class="wrap">
+
+    <!-- Шапка -->
+    <div class="dash-header">
+      <div>
+        <h1 class="dash-hello">Приветствую тебя<span>!</span></h1>
+        <p class="dash-email" id="user-phone">—</p>
+      </div>
+    </div>
+
+    <p class="payment-sync-note" id="payment-sync-banner" style="display:none">
+      <span class="spinner"></span> Проверяем оплату…
+    </p>
+
+    <div class="dash-grid">
+
+      <!-- Статус подписки -->
+      <section class="card">
+        <h2 class="card-title">
+          Подписка
+          <span class="badge inactive" id="sub-badge">—</span>
+        </h2>
+        <p class="sub-plan" id="sub-plan">—</p>
+        <p class="sub-meta">Действует до: <strong id="sub-expire">—</strong></p>
+        <p class="sub-meta" style="margin-top:4px;">Статус: <strong id="sub-status">—</strong></p>
+      </section>
+
+      <!-- Использование трафика -->
+      <section class="card">
+        <h2 class="card-title">Трафик</h2>
+        <div class="traffic-top">
+          <span class="traffic-used" id="traffic-used">— ГБ</span>
+          <span class="traffic-limit">из <span id="traffic-limit">—</span> ГБ</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="traffic-bar" style="width:0%"></div>
+        </div>
+        <p class="traffic-hint" id="traffic-hint">Осталось — ГБ</p>
+      </section>
+
+      <!-- Управление подпиской -->
+      <section class="card span-2">
+        <h2 class="card-title">Управление подпиской</h2>
+        <div class="actions-row">
+          <a href="/index.html#pricing" class="btn-red" id="manage-primary-btn">Продлить</a>
+          <a href="/index.html#pricing" class="btn-ghost" id="manage-secondary-btn">Сменить тариф</a>
+        </div>
+      </section>
+
+      <!-- Подключение (активная подписка) -->
+      <section class="card span-2" id="connect-card">
+        <h2 class="card-title">Подключение</h2>
+        <div class="sub-link-row">
+          <input class="sub-link-input" id="sub-url" readonly value="">
+          <button class="btn-copy" id="copy-btn">Копировать</button>
+        </div>
+        <div class="qr-box">
+          <!-- Сюда js/dashboard.js вставит QR-код подписочной ссылки -->
+          <div id="qr-code" role="img" aria-label="QR-код для подключения к VPN"></div>
+          <p class="qr-hint">Отсканируйте QR-код в приложении (V2RayTun, Hiddify, Streisand и др.), чтобы импортировать подписку автоматически.</p>
+        </div>
+      </section>
+
+      <!-- Тарифы (нет активной подписки) -->
+      <section class="card span-2" id="dashboard-pricing-card" style="display:none">
+        <h2 class="card-title">Тарифы</h2>
+        <p class="card-desc" id="pricing-card-desc">Выберите тариф, чтобы начать пользоваться VPN.</p>
+        <div class="plans-row" data-plans-auto>
+          <p class="plans-empty">Загрузка тарифов…</p>
+        </div>
+      </section>
+
+      <!-- Как подключиться (нет активной подписки) -->
+      <section class="card span-2" id="onboarding-card" style="display:none">
+        <h2 class="card-title">
+          Как подключиться
+          <button class="btn-ghost" id="get-link-btn" type="button" style="padding:8px 16px; font-size:12px;">Получить ссылку</button>
+        </h2>
+
+        <div class="onboard-steps">
+          <div class="onboard-step">
+            <span class="onboard-step-num">1</span>
+            <div>
+              <p class="onboard-step-title">Установите приложение</p>
+              <p class="onboard-step-desc">Выберите подходящую версию для вашего устройства и установите приложение.</p>
+              <div class="device-grid">
+                <!-- TODO: ссылка на V2RayTun/Streisand для iOS (App Store) -->
+                <a href="#" class="device-card is-active">
+                  <span class="device-icon">🍏</span>
+                  <span class="device-name">iOS</span>
+                </a>
+                <!-- TODO: ссылка на V2RayTun/Hiddify для Android (Google Play) -->
+                <a href="#" class="device-card">
+                  <span class="device-icon">🤖</span>
+                  <span class="device-name">Android</span>
+                </a>
+                <!-- TODO: ссылка на Hiddify/V2RayTun для Windows -->
+                <a href="#" class="device-card">
+                  <span class="device-icon">🖥️</span>
+                  <span class="device-name">Windows</span>
+                </a>
+                <!-- TODO: ссылка на Streisand/Hiddify для macOS -->
+                <a href="#" class="device-card">
+                  <span class="device-icon">💻</span>
+                  <span class="device-name">macOS</span>
+                </a>
+                <!-- TODO: ссылка на приложение для Android TV -->
+                <a href="#" class="device-card">
+                  <span class="device-icon">📺</span>
+                  <span class="device-name">TV</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="onboard-step">
+            <span class="onboard-step-num">2</span>
+            <div>
+              <p class="onboard-step-title">Добавьте подписку</p>
+              <p class="onboard-step-desc">Откройте приложение и используйте ссылку подписки. Если подписка добавляется автоматически — просто подтвердите добавление.</p>
+            </div>
+          </div>
+
+          <div class="onboard-step">
+            <span class="onboard-step-num">3</span>
+            <div>
+              <p class="onboard-step-title">Если подписка не добавилась</p>
+              <p class="onboard-step-desc">Нажмите «Получить ссылку» в правом верхнем углу и скопируйте её. Затем откройте приложение и добавьте ссылку вручную через раздел профилей / подписок.</p>
+            </div>
+          </div>
+
+          <div class="onboard-step">
+            <span class="onboard-step-num">4</span>
+            <div>
+              <p class="onboard-step-title">Подключитесь</p>
+              <p class="onboard-step-desc">После добавления подписки выберите нужный профиль и включите подключение. При необходимости выберите сервер в разделе прокси.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboard-link-box" id="onboard-link-box">
+          <div class="sub-link-row">
+            <input class="sub-link-input" id="onboard-sub-url" readonly value="">
+            <button class="btn-copy" id="onboard-copy-btn" type="button">Копировать</button>
+          </div>
+          <div class="qr-box">
+            <div id="onboard-qr-code" role="img" aria-label="QR-код для подключения к VPN"></div>
+            <p class="qr-hint" id="onboard-link-hint">Отсканируйте QR-код в приложении, чтобы импортировать подписку автоматически.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Серверы (активная подписка) -->
+      <section class="card span-2" id="servers-card">
+        <h2 class="card-title">Серверы</h2>
+        <div class="servers-row">
+          <div>
+            <p class="widget-num" id="servers-count">—</p>
+            <p class="widget-label">доступно для подключения</p>
+          </div>
+          <div class="servers-flags" id="servers-flags"></div>
+        </div>
+      </section>
+
+      <!-- История платежей -->
+      <section class="card span-2">
+        <h2 class="card-title">История платежей</h2>
+        <div class="table-scroll">
+        <table class="pay-table">
+          <thead>
+            <tr><th>Дата</th><th>Описание</th><th>Сумма</th><th>Статус</th></tr>
+          </thead>
+          <tbody id="pay-table-body">
+            <!-- заполняется из js/dashboard.js -->
+          </tbody>
+        </table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script src="/js/nav.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/pricing.js"></script>
+</body>
+</html>

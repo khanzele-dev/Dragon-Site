@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  YOOKASSA
+}
+
+// Пользователь сайта. Источник правды по VPN-подписке/трафику — Remnawave,
+// здесь храним только связь (remnawaveUuid) и то, что нужно для сайта.
+model User {
+  id            String    @id @default(cuid())
+  phone         String    @unique // нормализованный формат: +7XXXXXXXXXX
+  passwordHash  String
+  role          Role      @default(USER)
+  tokenVersion  Int       @default(0) // инкремент инвалидирует все выданные JWT
+
+  // Задел под будущую привязку Telegram-аккаунта (см. ТЗ) — не используется сейчас.
+  telegramId    String?   @unique
+
+  remnawaveUuid String?   @unique // id пользователя в Remnawave, создаётся при первой оплате
+
+  payments      Payment[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Каталог тарифов — редактируется из админки, не хардкодится в коде.
+model Plan {
+  id        String    @id @default(cuid())
+  code      String    @unique // "1m" | "3m" | "6m" | "12m" ...
+  name      String    // "1 месяц"
+  badge     String?   // опциональная метка на карточке ("Популярное", "Выгода ≈5%"); есть бейдж — карточка подсвечена
+  months    Int       @default(0)
+  days      Int       @default(0) // доп. дни сверх months (тестовые тарифы вроде "5 дней" держат months=0)
+  priceRub  Int       // в рублях, целое число (копейки не нужны для этих сумм)
+  isActive  Boolean   @default(true)
+  sortOrder Int       @default(0)
+
+  payments  Payment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Заказ/оплата тарифа. providerPaymentId уникален — это и есть защита
+// от повторной обработки одного и того же платежа вебхуком.
+model Payment {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id])
+  planId            String
+  plan              Plan            @relation(fields: [planId], references: [id])
+
+  amountRub         Int
+  provider          PaymentProvider @default(YOOKASSA)
+  providerPaymentId String?         @unique
+  status            PaymentStatus   @default(PENDING)
+  rawPayload        Json?
+  // Момент, когда подписка Remnawave реально была продлена по этому платежу.
+  // Отдельно от status=SUCCEEDED: оплата может пройти, а выдача VPN — временно
+  // не получиться (Remnawave недоступен), тогда fulfilledAt остаётся null и
+  // повторные вебхуки от ЮKassa безопасно доретраивают именно выдачу.
+  fulfilledAt       DateTime?
+  // Момент, когда возврат по этому платежу был обработан (подписка урезана
+  // в Remnawave ровно на plan.months). Отдельно от status=REFUNDED по той же
+  // причине, что и fulfilledAt — идемпотентность при повторных вебхуках.
+  refundedAt        DateTime?
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([userId])
+}
+
+// Дедупликация входящих вебхуков платёжной системы по её eventId/notification id.
+model WebhookEvent {
+  id         String   @id @default(cuid())
+  provider   PaymentProvider
+  externalId String
+  receivedAt DateTime @default(now())
+
+  @@unique([provider, externalId])
+}

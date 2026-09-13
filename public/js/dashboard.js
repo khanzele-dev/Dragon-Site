@@ -1,0 +1,337 @@
+/* ============================================================
+   dashboard.js — логика личного кабинета
+   Доступ к странице уже проверен на edge (middleware.ts) по httpOnly-куке.
+   Здесь только подгрузка данных профиля/серверов/платежей через API
+   и обработка 401 (сессия истекла/отозвана) на всякий случай.
+   ============================================================ */
+
+async function apiGet(url) {
+  var res = await fetch(url, { credentials: "same-origin" });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error("request failed: " + url);
+  return res.json();
+}
+
+async function fetchUserProfile() {
+  return apiGet("/api/users/me");
+}
+
+async function fetchNodes() {
+  var data = await apiGet("/api/nodes");
+  return data.nodes || [];
+}
+
+async function fetchPayments() {
+  var data = await apiGet("/api/payments");
+  return data.payments || [];
+}
+
+async function logoutUser() {
+  await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(function () {});
+}
+
+/* ============================================================
+   Форматирование
+   ============================================================ */
+function bytesToGB(bytes) { return bytes / (1024 * 1024 * 1024); }
+function fmtDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "long", year: "numeric" });
+  } catch (e) { return iso; }
+}
+/**
+ * Сколько месяцев реально осталось до expireAt, а не название последнего
+ * купленного тарифа — так продление 1+1+1 месяц честно показывает "3 месяца",
+ * а не "1 месяц" (имя последней покупки).
+ */
+function monthsRemaining(expireAtIso) {
+  var diffMs = new Date(expireAtIso).getTime() - Date.now();
+  if (diffMs <= 0) return 0;
+  var msPerMonth = 1000 * 60 * 60 * 24 * 30.44;
+  return Math.max(1, Math.round(diffMs / msPerMonth));
+}
+
+function pluralMonths(n) {
+  var mod10 = n % 10;
+  var mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return n + " месяц";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return n + " месяца";
+  return n + " месяцев";
+}
+
+/** Сколько дней реально осталось до expireAt — точное число в дополнение к monthsRemaining. */
+function daysRemaining(expireAtIso) {
+  var diffMs = new Date(expireAtIso).getTime() - Date.now();
+  if (diffMs <= 0) return 0;
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function pluralDays(n) {
+  var mod10 = n % 10;
+  var mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return n + " день";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return n + " дня";
+  return n + " дней";
+}
+
+function countryFlag(code) {
+  if (!code || code.length !== 2) return "🏳️";
+  var upper = code.toUpperCase();
+  var base = 0x1F1E6;
+  return String.fromCodePoint(base + upper.charCodeAt(0) - 65, base + upper.charCodeAt(1) - 65);
+}
+var STATUS_MAP = {
+  ACTIVE:   { label: "Активна",  isActive: true },
+  LIMITED:  { label: "Лимит",    isActive: false },
+  DISABLED: { label: "Отключена",isActive: false },
+  EXPIRED:  { label: "Истекла",  isActive: false },
+};
+
+/* ============================================================
+   Рендер
+   ============================================================ */
+function renderProfile(payload) {
+  document.getElementById("user-phone").textContent = payload.user.phone || "";
+
+  var sub = payload.subscription;
+  var st = STATUS_MAP[sub && sub.status] || { label: "Нет подписки", isActive: false };
+  var badge = document.getElementById("sub-badge");
+  badge.textContent = st.isActive ? "Активна" : "Неактивна";
+  badge.className = "badge " + (st.isActive ? "active" : "inactive");
+
+  document.getElementById("sub-plan").textContent = sub
+    ? pluralMonths(monthsRemaining(sub.expireAt)) + " (" + pluralDays(daysRemaining(sub.expireAt)) + ")"
+    : "—";
+  document.getElementById("sub-expire").textContent = sub ? fmtDate(sub.expireAt) : "—";
+  document.getElementById("sub-status").textContent = st.label;
+
+  var connectCard = document.getElementById("connect-card");
+  var onboardingCard = document.getElementById("onboarding-card");
+  var pricingCard = document.getElementById("dashboard-pricing-card");
+  var serversCard = document.getElementById("servers-card");
+  if (connectCard) connectCard.style.display = st.isActive ? "" : "none";
+  if (onboardingCard) onboardingCard.style.display = st.isActive ? "none" : "";
+  if (pricingCard) pricingCard.style.display = st.isActive ? "none" : "";
+  if (serversCard) serversCard.style.display = st.isActive ? "" : "none";
+
+  var pricingDesc = document.getElementById("pricing-card-desc");
+  if (pricingDesc) {
+    pricingDesc.textContent = sub
+      ? "Продлить период подписки."
+      : "Выберите тариф, чтобы начать пользоваться VPN.";
+  }
+
+  var hasLink = !!(sub && sub.subscriptionUrl);
+  var getLinkBtn = document.getElementById("get-link-btn");
+  var onboardLinkBox = document.getElementById("onboard-link-box");
+  if (getLinkBtn) getLinkBtn.style.display = hasLink ? "" : "none";
+  if (!hasLink && onboardLinkBox) onboardLinkBox.classList.remove("show");
+
+  var primaryBtn = document.getElementById("manage-primary-btn");
+  var secondaryBtn = document.getElementById("manage-secondary-btn");
+  if (primaryBtn && secondaryBtn) {
+    if (st.isActive) {
+      primaryBtn.textContent = "Продлить";
+      secondaryBtn.textContent = "Сменить тариф";
+      secondaryBtn.setAttribute("href", "/index.html#pricing");
+    } else {
+      primaryBtn.textContent = "Выбрать тариф →";
+      secondaryBtn.textContent = "Как подключиться";
+      secondaryBtn.setAttribute("href", "#onboarding-card");
+    }
+  }
+
+  var usedGB = sub ? bytesToGB(sub.trafficUsedBytes) : 0;
+  var limitGB = sub ? bytesToGB(sub.trafficLimitBytes) : 0;
+  var pct = limitGB > 0 ? Math.min(100, (usedGB / limitGB) * 100) : 0;
+  document.getElementById("traffic-used").textContent = usedGB.toFixed(1) + " ГБ";
+  document.getElementById("traffic-limit").textContent = limitGB.toFixed(0);
+  document.getElementById("traffic-bar").style.width = pct.toFixed(1) + "%";
+  document.getElementById("traffic-hint").textContent = sub
+    ? "Осталось " + Math.max(0, limitGB - usedGB).toFixed(1) + " ГБ · использовано " + pct.toFixed(0) + "%"
+    : "Оформите подписку, чтобы начать пользоваться VPN";
+
+  currentSubscriptionUrl = (sub && sub.subscriptionUrl) || "";
+  var subInput = document.getElementById("sub-url");
+  subInput.value = currentSubscriptionUrl;
+  renderQR("qr-code", currentSubscriptionUrl);
+}
+
+var currentSubscriptionUrl = "";
+
+function renderQR(containerId, url) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+  if (window.QRCode && url) {
+    new window.QRCode(container, {
+      text: url,
+      width: 134,
+      height: 134,
+      colorDark: "#0a0608",
+      colorLight: "#ffffff",
+    });
+  } else {
+    container.textContent = "QR";
+  }
+}
+
+function el(tag, className, text) {
+  var node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function renderNodes(nodes) {
+  var countEl = document.getElementById("servers-count");
+  var flagsEl = document.getElementById("servers-flags");
+  if (!countEl || !flagsEl) return;
+
+  countEl.textContent = String(nodes.length);
+
+  flagsEl.innerHTML = "";
+  var seen = {};
+  nodes.forEach(function (n) {
+    if (seen[n.countryCode]) return;
+    seen[n.countryCode] = true;
+    flagsEl.appendChild(el("span", "servers-flag", countryFlag(n.countryCode)));
+  });
+
+  if (window.twemoji) {
+    window.twemoji.parse(flagsEl, {
+      base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/",
+      ext: ".svg",
+    });
+  }
+}
+
+function renderPayments(payments) {
+  var body = document.getElementById("pay-table-body");
+  body.innerHTML = "";
+  var statusLabel = { paid: "Оплачен", pending: "В обработке", failed: "Ошибка", refunded: "Возврат" };
+  if (!payments.length) {
+    var emptyRow = document.createElement("tr");
+    var emptyCell = el("td", null, "Пока нет платежей");
+    emptyCell.colSpan = 4;
+    emptyRow.appendChild(emptyCell);
+    body.appendChild(emptyRow);
+    return;
+  }
+  payments.forEach(function (p) {
+    var tr = document.createElement("tr");
+    tr.appendChild(el("td", null, fmtDate(p.date)));
+    tr.appendChild(el("td", null, p.description));
+    tr.appendChild(el("td", null, p.amount + " " + p.currency));
+    var statusCell = document.createElement("td");
+    statusCell.appendChild(el("span", "pay-status " + p.status, statusLabel[p.status] || p.status));
+    tr.appendChild(statusCell);
+    body.appendChild(tr);
+  });
+}
+
+/* ============================================================
+   Действия
+   ============================================================ */
+function initCopy(btnId, inputId) {
+  var btn = document.getElementById(btnId);
+  var input = document.getElementById(inputId);
+  if (!btn || !input) return;
+  btn.addEventListener("click", function () {
+    if (!input.value) return;
+    navigator.clipboard.writeText(input.value).then(function () {
+      var old = btn.textContent;
+      btn.textContent = "Скопировано";
+      setTimeout(function () { btn.textContent = old; }, 1600);
+    }).catch(function () {
+      input.select();
+      document.execCommand("copy");
+    });
+  });
+}
+
+function initGetLink() {
+  var btn = document.getElementById("get-link-btn");
+  var box = document.getElementById("onboard-link-box");
+  var hint = document.getElementById("onboard-link-hint");
+  if (!btn || !box) return;
+  btn.addEventListener("click", function () {
+    var willShow = !box.classList.contains("show");
+    if (willShow) {
+      document.getElementById("onboard-sub-url").value = currentSubscriptionUrl;
+      renderQR("onboard-qr-code", currentSubscriptionUrl);
+      if (hint) hint.textContent = "Отсканируйте QR-код в приложении, чтобы импортировать подписку автоматически.";
+      box.classList.add("show");
+    } else {
+      box.classList.remove("show");
+    }
+  });
+}
+
+/* ============================================================
+   Сверка платежа при возврате со страницы оплаты ЮKassa
+   (?payment=pending в returnUrl) — не ждём вебхук, а сверяем сразу.
+   ============================================================ */
+async function syncPendingPayment() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get("payment") !== "pending") return;
+
+  var banner = document.getElementById("payment-sync-banner");
+  if (banner) banner.style.display = "flex";
+
+  for (var attempt = 0; attempt < 6; attempt++) {
+    try {
+      var res = await fetch("/api/payments/sync", { method: "POST", credentials: "same-origin" });
+      if (res.ok) {
+        var data = await res.json();
+        if (data.status === "SUCCEEDED" || data.status === "CANCELED" || data.status === null) break;
+      }
+    } catch (e) {
+      // сеть моргнула — попробуем ещё раз
+    }
+    await new Promise(function (resolve) { setTimeout(resolve, 1500); });
+  }
+
+  if (banner) banner.style.display = "none";
+  var url = new URL(window.location.href);
+  url.searchParams.delete("payment");
+  window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+}
+
+function initLogout() {
+  var buttons = document.querySelectorAll(".logout-btn");
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", async function () {
+      await logoutUser();
+      window.location.href = "/index.html";
+    });
+  });
+}
+
+/* ============================================================
+   Инициализация
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", async function () {
+  initCopy("copy-btn", "sub-url");
+  initCopy("onboard-copy-btn", "onboard-sub-url");
+  initGetLink();
+  initLogout();
+
+  try {
+    await syncPendingPayment();
+
+    var profile = await fetchUserProfile();
+    renderProfile(profile);
+
+    var nodes = await fetchNodes();
+    renderNodes(nodes);
+
+    var payments = await fetchPayments();
+    renderPayments(payments);
+  } catch (err) {
+    console.log("[dashboard] load error:", err);
+    if (err.message === "unauthorized") {
+      window.location.href = "/login.html";
+    }
+  }
+});
