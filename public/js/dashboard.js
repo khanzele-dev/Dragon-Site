@@ -48,7 +48,7 @@ function monthsRemaining(expireAtIso) {
   var diffMs = new Date(expireAtIso).getTime() - Date.now();
   if (diffMs <= 0) return 0;
   var msPerMonth = 1000 * 60 * 60 * 24 * 30.44;
-  return Math.max(1, Math.round(diffMs / msPerMonth));
+  return Math.round(diffMs / msPerMonth);
 }
 
 function pluralMonths(n) {
@@ -100,7 +100,9 @@ function renderProfile(payload) {
   badge.className = "badge " + (st.isActive ? "active" : "inactive");
 
   document.getElementById("sub-plan").textContent = sub
-    ? pluralMonths(monthsRemaining(sub.expireAt)) + " (" + pluralDays(daysRemaining(sub.expireAt)) + ")"
+    ? (monthsRemaining(sub.expireAt) > 0
+        ? pluralMonths(monthsRemaining(sub.expireAt)) + " (" + pluralDays(daysRemaining(sub.expireAt)) + ")"
+        : pluralDays(daysRemaining(sub.expireAt)))
     : "—";
   document.getElementById("sub-expire").textContent = sub ? fmtDate(sub.expireAt) : "—";
   document.getElementById("sub-status").textContent = st.label;
