@@ -111,13 +111,13 @@ function renderProfile(payload) {
   var onboardingCard = document.getElementById("onboarding-card");
   var pricingCard = document.getElementById("dashboard-pricing-card");
   var serversCard = document.getElementById("servers-card");
-  if (connectCard) connectCard.style.display = st.isActive ? "" : "none";
+  toggleCard(connectCard, st.isActive);
   // Показываем инструкцию по подключению всегда — и тем, у кого ещё нет
   // подписки, и тем, у кого она уже активна (например, чтобы подключить
   // ещё одно устройство или переустановить приложение).
-  if (onboardingCard) onboardingCard.style.display = "";
-  if (pricingCard) pricingCard.style.display = st.isActive ? "none" : "";
-  if (serversCard) serversCard.style.display = st.isActive ? "" : "none";
+  toggleCard(onboardingCard, true);
+  toggleCard(pricingCard, !st.isActive);
+  toggleCard(serversCard, st.isActive);
 
   var pricingDesc = document.getElementById("pricing-card-desc");
   if (pricingDesc) {
@@ -179,6 +179,29 @@ function renderQR(containerId, url) {
     });
   } else {
     container.textContent = "QR";
+  }
+}
+
+/** Снимает скелетоны: класс на <body> управляет всеми заглушками разом. */
+function clearSkeletons() {
+  document.body.classList.remove("is-loading");
+}
+
+/**
+ * Показывает/прячет карточку. При первом появлении добавляет .reveal,
+ * чтобы блок проявлялся, а не выскакивал. Класс снимаем после анимации,
+ * чтобы не держать лишний композиторный слой.
+ */
+function toggleCard(card, visible) {
+  if (!card) return;
+  var wasHidden = getComputedStyle(card).display === "none";
+  card.style.display = visible ? "" : "none";
+  if (visible && wasHidden) {
+    card.classList.add("reveal");
+    card.addEventListener("animationend", function handler() {
+      card.classList.remove("reveal");
+      card.removeEventListener("animationend", handler);
+    });
   }
 }
 
@@ -388,18 +411,38 @@ document.addEventListener("DOMContentLoaded", async function () {
   try {
     await syncPendingPayment();
 
+    // Три запроса стартуют разом, а не цепочкой — данные приезжают быстрее,
+    // и каждый блок заменяет свой скелетон, как только пришёл его ответ.
+    var nodesPromise = fetchNodes();
+    var paymentsPromise = fetchPayments();
+    // Без этого отказ любого из них до своего await всплывёт как unhandled.
+    nodesPromise.catch(function () {});
+    paymentsPromise.catch(function () {});
+
     var profile = await fetchUserProfile();
     renderProfile(profile);
+    clearSkeletons();
 
-    var nodes = await fetchNodes();
-    renderNodes(nodes);
+    try {
+      renderNodes(await nodesPromise);
+    } catch (e) {
+      document.getElementById("servers-flags").innerHTML = "";
+    }
 
-    var payments = await fetchPayments();
-    renderPayments(payments);
+    try {
+      renderPayments(await paymentsPromise);
+    } catch (e) {
+      renderPayments([]);
+    }
   } catch (err) {
     console.log("[dashboard] load error:", err);
     if (err.message === "unauthorized") {
       window.location.href = "/login.html";
+      return;
     }
+    // Не оставляем страницу мерцать скелетонами, если данные не пришли.
+    clearSkeletons();
+    renderPayments([]);
+    document.getElementById("servers-flags").innerHTML = "";
   }
 });

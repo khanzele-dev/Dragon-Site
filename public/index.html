@@ -104,7 +104,12 @@
   <div class="wrap">
     <h2 class="section-title">Тарифы</h2>
     <div class="plans-row" data-plans-auto>
-      <p class="plans-empty">Загрузка тарифов…</p>
+      <!-- Заглушки на время загрузки /api/plans — столько же, сколько тарифов,
+           чтобы блок не менял высоту, когда придут настоящие карточки. -->
+      <div class="plan plan-skeleton"><span class="skeleton skel-badge"></span><span class="skeleton skel-name"></span><span class="skeleton skel-price"></span><span class="skeleton skel-save"></span><span class="skeleton skel-btn"></span></div>
+      <div class="plan plan-skeleton"><span class="skeleton skel-badge"></span><span class="skeleton skel-name"></span><span class="skeleton skel-price"></span><span class="skeleton skel-save"></span><span class="skeleton skel-btn"></span></div>
+      <div class="plan plan-skeleton"><span class="skeleton skel-badge"></span><span class="skeleton skel-name"></span><span class="skeleton skel-price"></span><span class="skeleton skel-save"></span><span class="skeleton skel-btn"></span></div>
+      <div class="plan plan-skeleton"><span class="skeleton skel-badge"></span><span class="skeleton skel-name"></span><span class="skeleton skel-price"></span><span class="skeleton skel-save"></span><span class="skeleton skel-btn"></span></div>
     </div>
   </div>
 </section>

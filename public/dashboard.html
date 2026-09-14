@@ -16,7 +16,7 @@
      Twemoji подменяет на картинки — одинаково выглядит везде. -->
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" integrity="sha384-32KMvAMS4DUBcQtHG6fzADguo/tpN1Nh6BAJa2QqZc6/i0K+YPQE+bWiqBRAWuFs" crossorigin="anonymous"></script>
 </head>
-<body>
+<body class="is-loading">
 
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
@@ -52,7 +52,7 @@
     <div class="dash-header">
       <div>
         <h1 class="dash-hello">Приветствую тебя<span>!</span></h1>
-        <p class="dash-email" id="user-phone">—</p>
+        <p class="dash-email"><span class="skel" id="user-phone" style="--skel-w:150px">—</span></p>
       </div>
     </div>
 
@@ -66,24 +66,24 @@
       <section class="card">
         <h2 class="card-title">
           Подписка
-          <span class="badge inactive" id="sub-badge">—</span>
+          <span class="badge inactive skel" id="sub-badge" style="--skel-w:74px">—</span>
         </h2>
-        <p class="sub-plan" id="sub-plan">—</p>
-        <p class="sub-meta">Действует до: <strong id="sub-expire">—</strong></p>
-        <p class="sub-meta" style="margin-top:4px;">Статус: <strong id="sub-status">—</strong></p>
+        <p class="sub-plan"><span class="skel" id="sub-plan" style="--skel-w:190px">—</span></p>
+        <p class="sub-meta">Действует до: <strong class="skel" id="sub-expire" style="--skel-w:120px">—</strong></p>
+        <p class="sub-meta" style="margin-top:4px;">Статус: <strong class="skel" id="sub-status" style="--skel-w:80px">—</strong></p>
       </section>
 
       <!-- Использование трафика -->
       <section class="card">
         <h2 class="card-title">Трафик</h2>
         <div class="traffic-top">
-          <span class="traffic-used" id="traffic-used">— ГБ</span>
-          <span class="traffic-limit">из <span id="traffic-limit">—</span> ГБ</span>
+          <span class="traffic-used skel" id="traffic-used" style="--skel-w:110px">— ГБ</span>
+          <span class="traffic-limit">из <span class="skel" id="traffic-limit" style="--skel-w:28px">—</span> ГБ</span>
         </div>
         <div class="progress">
           <div class="progress-bar" id="traffic-bar" style="width:0%"></div>
         </div>
-        <p class="traffic-hint" id="traffic-hint">Осталось — ГБ</p>
+        <p class="traffic-hint"><span class="skel" id="traffic-hint" style="--skel-w:230px">Осталось — ГБ</span></p>
       </section>
 
       <!-- Управление подпиской -->
@@ -114,7 +114,10 @@
         <h2 class="card-title">Тарифы</h2>
         <p class="card-desc" id="pricing-card-desc">Выберите тариф, чтобы начать пользоваться VPN.</p>
         <div class="plans-row" data-plans-auto>
-          <p class="plans-empty">Загрузка тарифов…</p>
+          <div class="plan plan-skeleton"><span class="skeleton skel-badge"></span><span class="skeleton skel-name"></span><span class="skeleton skel-price"></span><span class="skeleton skel-save"></span><span class="skeleton skel-btn"></span></div>
+          <div class="plan plan-skeleton"><span class="skeleton skel-badge"></span><span class="skeleton skel-name"></span><span class="skeleton skel-price"></span><span class="skeleton skel-save"></span><span class="skeleton skel-btn"></span></div>
+          <div class="plan plan-skeleton"><span class="skeleton skel-badge"></span><span class="skeleton skel-name"></span><span class="skeleton skel-price"></span><span class="skeleton skel-save"></span><span class="skeleton skel-btn"></span></div>
+          <div class="plan plan-skeleton"><span class="skeleton skel-badge"></span><span class="skeleton skel-name"></span><span class="skeleton skel-price"></span><span class="skeleton skel-save"></span><span class="skeleton skel-btn"></span></div>
         </div>
       </section>
 
@@ -341,10 +344,14 @@
         <h2 class="card-title">Серверы</h2>
         <div class="servers-row">
           <div>
-            <p class="widget-num" id="servers-count">—</p>
+            <p class="widget-num"><span class="skel" id="servers-count" style="--skel-w:48px">—</span></p>
             <p class="widget-label">доступно для подключения</p>
           </div>
-          <div class="servers-flags" id="servers-flags"></div>
+          <div class="servers-flags" id="servers-flags">
+            <span class="skeleton skel-flag"></span>
+            <span class="skeleton skel-flag"></span>
+            <span class="skeleton skel-flag"></span>
+          </div>
         </div>
       </section>
 
@@ -357,7 +364,10 @@
             <tr><th>Дата</th><th>Описание</th><th>Сумма</th><th>Статус</th></tr>
           </thead>
           <tbody id="pay-table-body">
-            <!-- заполняется из js/dashboard.js -->
+            <!-- скелетон-строки до ответа /api/payments; js/dashboard.js их заменяет -->
+            <tr><td><span class="skeleton skel-line" style="width:110px"></span></td><td><span class="skeleton skel-line" style="width:170px"></span></td><td><span class="skeleton skel-line" style="width:70px"></span></td><td><span class="skeleton skel-line" style="width:80px"></span></td></tr>
+            <tr><td><span class="skeleton skel-line" style="width:110px"></span></td><td><span class="skeleton skel-line" style="width:140px"></span></td><td><span class="skeleton skel-line" style="width:70px"></span></td><td><span class="skeleton skel-line" style="width:80px"></span></td></tr>
+            <tr><td><span class="skeleton skel-line" style="width:110px"></span></td><td><span class="skeleton skel-line" style="width:190px"></span></td><td><span class="skeleton skel-line" style="width:70px"></span></td><td><span class="skeleton skel-line" style="width:80px"></span></td></tr>
           </tbody>
         </table>
         </div>

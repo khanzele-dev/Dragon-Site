@@ -347,6 +347,78 @@ body.nav-open { overflow: hidden; }
 .plan-error { font-size: 12px; color: var(--red); margin-top: 10px; text-align: center; }
 .plans-empty { grid-column: 1 / -1; font-size: 13px; color: var(--muted); text-align: center; padding: 20px 0; }
 
+/* ============================================================
+   SKELETON — заглушки на время загрузки данных
+   Одна CSS-анимация на transform (композитится GPU, без JS-таймеров
+   и без сторонних библиотек), чтобы не нагружать страницу.
+   ============================================================ */
+.skeleton {
+  position: relative; overflow: hidden;
+  background: rgba(255,255,255,.05);
+  border-radius: 6px;
+}
+.skeleton::after {
+  content: ''; position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
+  animation: skel-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skel-shimmer { to { transform: translateX(100%); } }
+
+/* Текстовые заглушки: сам текст-плейсхолдер прячем, размер держит строка,
+   поэтому при появлении данных вёрстка не прыгает. */
+body.is-loading .skel {
+  color: transparent !important;
+  background: rgba(255,255,255,.05);
+  border-radius: 6px;
+  display: inline-block;
+  min-width: var(--skel-w, 90px);
+  /* высота ровно в размер шрифта — строка сохраняет свой line-height,
+     поэтому появление настоящего текста не двигает соседние блоки */
+  height: 1em; line-height: 1; vertical-align: -.12em;
+  position: relative; overflow: hidden;
+  user-select: none; pointer-events: none;
+}
+body.is-loading .skel::after {
+  content: ''; position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
+  animation: skel-shimmer 1.4s ease-in-out infinite;
+}
+body.is-loading .skel > * { visibility: hidden; }
+/* Бейдж статуса: рамку прячем, но высоту держит его собственный padding */
+body.is-loading .badge.skel {
+  border-color: transparent; height: auto; line-height: inherit; vertical-align: baseline;
+}
+/* Полоса трафика во время загрузки — пустой жёлоб с подсветкой */
+body.is-loading .progress { background: rgba(255,255,255,.05); }
+
+/* Крупная цифра: выравниваем по базовой линии, иначе строка выше на пару пикселей */
+body.is-loading .widget-num .skel { vertical-align: baseline; height: .74em; }
+
+.skel-line { display: block; height: 12px; }
+.skel-flag { display: inline-block; width: 26px; height: 20px; border-radius: 4px; }
+
+/* Карточка-заглушка тарифа: те же размеры, что у настоящей .plan */
+.plan-skeleton { pointer-events: none; }
+.plan-skeleton .skel-badge { height: 11px; width: 60%; margin: 0 auto 16px; }
+.plan-skeleton .skel-name { height: 14px; width: 70%; margin: 0 auto 16px; }
+.plan-skeleton .skel-price { height: 40px; width: 60%; margin: 0 auto 4px; }
+.plan-skeleton .skel-save { height: 13px; width: 45%; margin: 6px auto 0; }
+.plan-skeleton .skel-btn { height: 41px; width: 100%; margin-top: 24px; border-radius: 8px; }
+
+/* Плавное появление блоков, которые видны только после ответа API */
+.reveal { animation: reveal-in .32s ease-out both; }
+@keyframes reveal-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after, body.is-loading .skel::after { animation: none; }
+  .reveal { animation: none; }
+}
+
 /* ── REVIEWS ── */
 .reviews { padding-bottom: clamp(56px, 9vw, 100px); }
 .reviews-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }

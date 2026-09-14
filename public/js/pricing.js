@@ -108,6 +108,12 @@
         return;
       }
       container.innerHTML = plans.map(planCardHTML).join("");
+      // Карточки подменяют скелетоны с коротким проявлением, а не рывком.
+      container.classList.add("reveal");
+      container.addEventListener("animationend", function handler() {
+        container.classList.remove("reveal");
+        container.removeEventListener("animationend", handler);
+      });
       bindButtons(container);
     } catch (e) {
       container.innerHTML = '<p class="plans-empty">Не удалось загрузить тарифы. Обновите страницу.</p>';
