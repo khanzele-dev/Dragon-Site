@@ -118,70 +118,208 @@
         </div>
       </section>
 
-      <!-- Как подключиться (нет активной подписки) -->
+      <!-- Как подключиться -->
       <section class="card span-2" id="onboarding-card" style="display:none">
-        <h2 class="card-title">
-          Как подключиться
-          <button class="btn-ghost" id="get-link-btn" type="button" style="padding:8px 16px; font-size:12px;">Получить ссылку</button>
-        </h2>
+        <h2 class="card-title">Как подключиться</h2>
 
-        <div class="onboard-steps">
+        <div class="device-grid" id="platform-switch">
+          <button type="button" class="device-card is-active" data-platform="ios">
+            <span class="device-icon">🍏</span>
+            <span class="device-name">iOS</span>
+          </button>
+          <button type="button" class="device-card" data-platform="android">
+            <span class="device-icon">🤖</span>
+            <span class="device-name">Android</span>
+          </button>
+          <button type="button" class="device-card" data-platform="windows">
+            <span class="device-icon">🖥️</span>
+            <span class="device-name">Windows</span>
+          </button>
+          <button type="button" class="device-card" data-platform="macos">
+            <span class="device-icon">💻</span>
+            <span class="device-name">macOS</span>
+          </button>
+          <button type="button" class="device-card" data-platform="androidtv">
+            <span class="device-icon">📺</span>
+            <span class="device-name">TV</span>
+          </button>
+        </div>
+
+        <!-- iOS -->
+        <div class="onboard-steps" data-platform-panel="ios">
           <div class="onboard-step">
             <span class="onboard-step-num">1</span>
             <div>
               <p class="onboard-step-title">Установите приложение</p>
-              <p class="onboard-step-desc">Выберите подходящую версию для вашего устройства и установите приложение.</p>
-              <div class="device-grid">
-                <!-- TODO: ссылка на V2RayTun/Streisand для iOS (App Store) -->
-                <a href="#" class="device-card is-active">
-                  <span class="device-icon">🍏</span>
-                  <span class="device-name">iOS</span>
-                </a>
-                <!-- TODO: ссылка на V2RayTun/Hiddify для Android (Google Play) -->
-                <a href="#" class="device-card">
-                  <span class="device-icon">🤖</span>
-                  <span class="device-name">Android</span>
-                </a>
-                <!-- TODO: ссылка на Hiddify/V2RayTun для Windows -->
-                <a href="#" class="device-card">
-                  <span class="device-icon">🖥️</span>
-                  <span class="device-name">Windows</span>
-                </a>
-                <!-- TODO: ссылка на Streisand/Hiddify для macOS -->
-                <a href="#" class="device-card">
-                  <span class="device-icon">💻</span>
-                  <span class="device-name">macOS</span>
-                </a>
-                <!-- TODO: ссылка на приложение для Android TV -->
-                <a href="#" class="device-card">
-                  <span class="device-icon">📺</span>
-                  <span class="device-name">TV</span>
-                </a>
+              <p class="onboard-step-desc">Выберите удобное приложение.</p>
+              <div class="onboard-step-actions">
+                <a class="btn-ghost" href="https://apps.apple.com/ru/app/incy/id6756943388" target="_blank" rel="noopener">Скачать INCY</a>
+                <a class="btn-ghost" href="https://apps.apple.com/ru/app/happ-lite/id6799917773" target="_blank" rel="noopener">Скачать Happ</a>
               </div>
             </div>
           </div>
-
           <div class="onboard-step">
             <span class="onboard-step-num">2</span>
             <div>
               <p class="onboard-step-title">Добавьте подписку</p>
-              <p class="onboard-step-desc">Запустите приложение и разрешите добавление VPN-конфигурации (кнопка «Разрешить»/«Allow» и, если попросит, пароль устройства) — приложение подставит вашу ссылку-подписку автоматически.</p>
+              <p class="onboard-step-desc">Нажмите кнопку — приложение откроется, и подписка добавится автоматически.</p>
+              <div class="onboard-step-actions">
+                <button type="button" class="btn-ghost add-vpn-btn" data-scheme="happ">Добавить VPN в приложение</button>
+              </div>
+              <p class="onboard-fallback">Не открылось? <button type="button" class="link-btn copy-sub-link">Скопируйте ссылку</button> и добавьте её в приложении вручную.</p>
             </div>
           </div>
-
           <div class="onboard-step">
             <span class="onboard-step-num">3</span>
             <div>
-              <p class="onboard-step-title">Если подписка не добавилась сама</p>
-              <p class="onboard-step-desc">Нажмите «Получить ссылку» вверху карточки и скопируйте её. В приложении откройте раздел профилей/подписок → «Добавить по ссылке» → вставьте.</p>
+              <p class="onboard-step-title">Подключитесь</p>
+              <p class="onboard-step-desc">Откройте приложение, выберите сервер и включите VPN.</p>
             </div>
           </div>
+        </div>
 
+        <!-- Android -->
+        <div class="onboard-steps" data-platform-panel="android" hidden>
           <div class="onboard-step">
-            <span class="onboard-step-num">4</span>
+            <span class="onboard-step-num">1</span>
             <div>
-              <p class="onboard-step-title">Выберите сервер и подключитесь</p>
-              <p class="onboard-step-desc">В списке серверов выберите нужную страну, затем нажмите большую кнопку подключения в центре экрана — она станет активной, когда VPN включён.</p>
+              <p class="onboard-step-title">Установите приложение</p>
+              <p class="onboard-step-desc">Нажмите кнопку и установите Happ.</p>
+              <div class="onboard-step-actions">
+                <a class="btn-ghost" href="https://play.google.com/store/apps/details?id=com.happproxy" target="_blank" rel="noopener">Установить Happ</a>
+              </div>
+            </div>
+          </div>
+          <div class="onboard-step">
+            <span class="onboard-step-num">2</span>
+            <div>
+              <p class="onboard-step-title">Добавьте VPN</p>
+              <p class="onboard-step-desc">Нажмите кнопку — подписка добавится в приложение автоматически.</p>
+              <div class="onboard-step-actions">
+                <button type="button" class="btn-ghost add-vpn-btn" data-scheme="happ">Добавить VPN в приложение</button>
+              </div>
+              <p class="onboard-fallback">Не открылось? <button type="button" class="link-btn copy-sub-link">Скопируйте ссылку</button> и добавьте её в приложении вручную.</p>
+            </div>
+          </div>
+          <div class="onboard-step">
+            <span class="onboard-step-num">3</span>
+            <div>
+              <p class="onboard-step-title">Подключитесь</p>
+              <p class="onboard-step-desc">Откройте Happ, выберите сервер и включите VPN.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Windows -->
+        <div class="onboard-steps" data-platform-panel="windows" hidden>
+          <div class="onboard-step">
+            <span class="onboard-step-num">1</span>
+            <div>
+              <p class="onboard-step-title">Установите приложение</p>
+              <p class="onboard-step-desc">Скачайте и установите Happ.</p>
+              <div class="onboard-step-actions">
+                <a class="btn-ghost" href="https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe">Установить Happ</a>
+              </div>
+            </div>
+          </div>
+          <div class="onboard-step">
+            <span class="onboard-step-num">2</span>
+            <div>
+              <p class="onboard-step-title">Добавьте VPN</p>
+              <p class="onboard-step-desc">Нажмите кнопку — подписка добавится в приложение автоматически.</p>
+              <div class="onboard-step-actions">
+                <button type="button" class="btn-ghost add-vpn-btn" data-scheme="happ">Добавить VPN в приложение</button>
+              </div>
+              <p class="onboard-fallback">Не открылось? <button type="button" class="link-btn copy-sub-link">Скопируйте ссылку</button> и добавьте её в Happ вручную.</p>
+            </div>
+          </div>
+          <div class="onboard-step">
+            <span class="onboard-step-num">3</span>
+            <div>
+              <p class="onboard-step-title">Подключитесь</p>
+              <p class="onboard-step-desc">Откройте Happ, выберите сервер и включите VPN.</p>
+            </div>
+          </div>
+          <p class="onboard-fallback"><button type="button" class="link-btn" id="windows-alt-toggle">Другой способ → V2RayTun</button></p>
+          <div id="windows-alt-panel" hidden>
+            <div class="onboard-step">
+              <span class="onboard-step-num">1</span>
+              <div>
+                <p class="onboard-step-title">Установите V2RayTun</p>
+                <div class="onboard-step-actions">
+                  <a class="btn-ghost" href="https://storage.v2raytun.com/v2RayTun_Setup.exe">Установить V2RayTun</a>
+                </div>
+              </div>
+            </div>
+            <div class="onboard-step">
+              <span class="onboard-step-num">2</span>
+              <div>
+                <p class="onboard-step-title">Добавьте ту же подписку</p>
+                <div class="onboard-step-actions">
+                  <button type="button" class="btn-ghost add-vpn-btn" data-scheme="v2raytun">Добавить VPN в приложение</button>
+                </div>
+                <p class="onboard-fallback">Не открылось? <button type="button" class="link-btn copy-sub-link">Скопируйте ссылку</button> и добавьте её вручную.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- macOS -->
+        <div class="onboard-steps" data-platform-panel="macos" hidden>
+          <div class="onboard-step">
+            <span class="onboard-step-num">1</span>
+            <div>
+              <p class="onboard-step-title">Установите приложение</p>
+              <p class="onboard-step-desc">Скачайте Happ и установите его.</p>
+              <div class="onboard-step-actions">
+                <a class="btn-ghost" href="https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.macOS.universal.dmg">Скачать Happ</a>
+              </div>
+            </div>
+          </div>
+          <div class="onboard-step">
+            <span class="onboard-step-num">2</span>
+            <div>
+              <p class="onboard-step-title">Добавьте VPN</p>
+              <p class="onboard-step-desc">Нажмите кнопку — подписка добавится в приложение автоматически.</p>
+              <div class="onboard-step-actions">
+                <button type="button" class="btn-ghost add-vpn-btn" data-scheme="happ">Добавить VPN в приложение</button>
+              </div>
+              <p class="onboard-fallback">Не открылось? <button type="button" class="link-btn copy-sub-link">Скопируйте ссылку</button> и добавьте её в приложении вручную.</p>
+            </div>
+          </div>
+          <div class="onboard-step">
+            <span class="onboard-step-num">3</span>
+            <div>
+              <p class="onboard-step-title">Подключитесь</p>
+              <p class="onboard-step-desc">Откройте Happ, выберите сервер и включите VPN.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Android TV -->
+        <div class="onboard-steps" data-platform-panel="androidtv" hidden>
+          <div class="onboard-step">
+            <span class="onboard-step-num">1</span>
+            <div>
+              <p class="onboard-step-title">Установите Happ</p>
+              <p class="onboard-step-desc">Откройте Google Play на телевизоре, найдите Happ и установите приложение.</p>
+            </div>
+          </div>
+          <div class="onboard-step">
+            <span class="onboard-step-num">2</span>
+            <div>
+              <p class="onboard-step-title">Добавьте подписку</p>
+              <p class="onboard-step-desc">Введите эту ссылку в Happ на телевизоре.</p>
+              <div class="onboard-step-actions">
+                <button type="button" class="btn-ghost" id="tv-show-link">Показать ссылку подписки</button>
+              </div>
+            </div>
+          </div>
+          <div class="onboard-step">
+            <span class="onboard-step-num">3</span>
+            <div>
+              <p class="onboard-step-title">Подключитесь</p>
+              <p class="onboard-step-desc">Откройте Happ, выберите сервер и включите VPN.</p>
             </div>
           </div>
         </div>

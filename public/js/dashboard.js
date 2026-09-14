@@ -127,10 +127,11 @@ function renderProfile(payload) {
   }
 
   var hasLink = !!(sub && sub.subscriptionUrl);
-  var getLinkBtn = document.getElementById("get-link-btn");
   var onboardLinkBox = document.getElementById("onboard-link-box");
-  if (getLinkBtn) getLinkBtn.style.display = hasLink ? "" : "none";
   if (!hasLink && onboardLinkBox) onboardLinkBox.classList.remove("show");
+  document.querySelectorAll(".add-vpn-btn, .copy-sub-link, #tv-show-link").forEach(function (b) {
+    b.disabled = !hasLink;
+  });
 
   var primaryBtn = document.getElementById("manage-primary-btn");
   var secondaryBtn = document.getElementById("manage-secondary-btn");
@@ -255,21 +256,79 @@ function initCopy(btnId, inputId) {
   });
 }
 
-function initGetLink() {
-  var btn = document.getElementById("get-link-btn");
+function showLinkBox(hintText) {
   var box = document.getElementById("onboard-link-box");
   var hint = document.getElementById("onboard-link-hint");
-  if (!btn || !box) return;
+  if (!box || !currentSubscriptionUrl) return;
+  document.getElementById("onboard-sub-url").value = currentSubscriptionUrl;
+  renderQR("onboard-qr-code", currentSubscriptionUrl);
+  if (hint) hint.textContent = hintText || "Отсканируйте QR-код в приложении, чтобы импортировать подписку автоматически.";
+  box.classList.add("show");
+  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/** Переключатель платформ в карточке "Как подключиться". */
+function initPlatformSwitch() {
+  var switcher = document.getElementById("platform-switch");
+  if (!switcher) return;
+  switcher.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-platform]");
+    if (!btn) return;
+    switcher.querySelectorAll("[data-platform]").forEach(function (b) {
+      b.classList.toggle("is-active", b === btn);
+    });
+    document.querySelectorAll("[data-platform-panel]").forEach(function (panel) {
+      panel.hidden = panel.getAttribute("data-platform-panel") !== btn.dataset.platform;
+    });
+  });
+}
+
+/** Кнопки "Добавить VPN в приложение" — открывают диплинк приложения с
+ *  текущей ссылкой подписки. Если приложение не поддерживает схему или не
+ *  установлено, ничего не ломается — рядом всегда есть текстовый fallback
+ *  "Скопируйте ссылку", который работает независимо. */
+function initAddVpnButtons() {
+  document.querySelectorAll(".add-vpn-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (!currentSubscriptionUrl || btn.disabled) return;
+      var encoded = encodeURIComponent(currentSubscriptionUrl);
+      var schemes = {
+        happ: "happ://add/" + encoded,
+        v2raytun: "v2raytun://import/" + encoded,
+      };
+      var url = schemes[btn.dataset.scheme];
+      if (url) window.location.href = url;
+    });
+  });
+}
+
+function initCopySubLinkButtons() {
+  document.querySelectorAll(".copy-sub-link").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (!currentSubscriptionUrl || btn.disabled) return;
+      navigator.clipboard.writeText(currentSubscriptionUrl).then(function () {
+        var old = btn.textContent;
+        btn.textContent = "Скопировано";
+        setTimeout(function () { btn.textContent = old; }, 1600);
+      });
+    });
+  });
+}
+
+function initWindowsAltToggle() {
+  var toggle = document.getElementById("windows-alt-toggle");
+  var panel = document.getElementById("windows-alt-panel");
+  if (!toggle || !panel) return;
+  toggle.addEventListener("click", function () {
+    panel.hidden = !panel.hidden;
+  });
+}
+
+function initTvShowLink() {
+  var btn = document.getElementById("tv-show-link");
+  if (!btn) return;
   btn.addEventListener("click", function () {
-    var willShow = !box.classList.contains("show");
-    if (willShow) {
-      document.getElementById("onboard-sub-url").value = currentSubscriptionUrl;
-      renderQR("onboard-qr-code", currentSubscriptionUrl);
-      if (hint) hint.textContent = "Отсканируйте QR-код в приложении, чтобы импортировать подписку автоматически.";
-      box.classList.add("show");
-    } else {
-      box.classList.remove("show");
-    }
+    showLinkBox("Введите эту ссылку в Happ на телевизоре.");
   });
 }
 
@@ -319,7 +378,11 @@ function initLogout() {
 document.addEventListener("DOMContentLoaded", async function () {
   initCopy("copy-btn", "sub-url");
   initCopy("onboard-copy-btn", "onboard-sub-url");
-  initGetLink();
+  initPlatformSwitch();
+  initAddVpnButtons();
+  initCopySubLinkButtons();
+  initWindowsAltToggle();
+  initTvShowLink();
   initLogout();
 
   try {
