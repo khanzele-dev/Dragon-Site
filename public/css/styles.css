@@ -422,7 +422,7 @@ footer { border-top: 1px solid var(--border); padding: 36px 0; }
 .auth-page {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  padding: 100px 20px 60px;
+  padding: 92px 20px 40px;
 }
 .auth-card {
   position: relative; z-index: 1;
@@ -430,7 +430,7 @@ footer { border-top: 1px solid var(--border); padding: 36px 0; }
   background: linear-gradient(165deg, var(--bg2), #0d0708);
   border: 1px solid var(--border-r);
   border-radius: 14px;
-  padding: 40px 36px;
+  padding: 32px 32px;
   box-shadow: 0 24px 70px -28px rgba(224,54,42,.45);
   overflow: hidden;
 }
@@ -449,16 +449,18 @@ footer { border-top: 1px solid var(--border); padding: 36px 0; }
 .auth-logo span { color: var(--red); }
 .auth-title {
   font-family: var(--logo-f); font-weight: 800;
-  font-size: 28px; color: #fff; line-height: 1.2; margin: 14px 0 8px;
+  font-size: 26px; color: #fff; line-height: 1.2; margin: 12px 0 6px;
   letter-spacing: -.01em;
 }
 .auth-title span { color: var(--red); }
-.auth-sub { font-size: 14px; color: var(--muted); margin-bottom: 30px; }
+.auth-sub { font-size: 14px; color: var(--muted); margin-bottom: 22px; }
+/* отступ до формы одинаковый и с подзаголовком (схлопывается с его margin), и без него */
+.auth-card form { margin-top: 22px; }
 
-.field { margin-bottom: 18px; }
+.field { margin-bottom: 14px; }
 .field label {
   display: block; font-size: 12px; color: var(--muted);
-  letter-spacing: .04em; margin-bottom: 8px; text-transform: uppercase;
+  letter-spacing: .04em; margin-bottom: 7px; text-transform: uppercase;
 }
 .input {
   width: 100%; padding: 13px 14px;
@@ -474,7 +476,9 @@ footer { border-top: 1px solid var(--border); padding: 36px 0; }
   box-shadow: 0 0 0 3px var(--red-glow);
 }
 .input.is-invalid { border-color: var(--red); }
-.field-error { font-size: 12px; color: var(--red); margin-top: 6px; min-height: 14px; }
+/* пустая ошибка не резервирует место — иначе поля расходятся на лишние 20px */
+.field-error { font-size: 12px; color: var(--red); }
+.field-error:not(:empty) { margin-top: 6px; }
 
 .checkrow {
   display: flex; align-items: flex-start; gap: 10px;
@@ -503,11 +507,11 @@ footer { border-top: 1px solid var(--border); padding: 36px 0; }
   display: none;
   background: var(--red-dim); border: 1px solid var(--border-r);
   color: #f3b8b1; border-radius: 7px;
-  padding: 11px 14px; font-size: 13px; margin-bottom: 20px;
+  padding: 11px 14px; font-size: 13px; margin-bottom: 16px;
 }
 .auth-alert.show { display: block; }
 
-.auth-foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 24px; }
+.auth-foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 20px; }
 .auth-foot a { color: var(--red); text-decoration: none; }
 .auth-foot a:hover { text-decoration: underline; }
 
@@ -756,7 +760,7 @@ table.pay-table { width: 100%; min-width: 480px; border-collapse: collapse; font
     width: 220px; max-width: 60vw;
     margin: 0 auto;
   }
-  .auth-card { padding: 32px 24px; }
+  .auth-card { padding: 28px 22px; }
   .device-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .device-card { padding: 14px 8px; gap: 6px; }
   .device-icon { font-size: 20px; }
@@ -784,6 +788,19 @@ table.pay-table { width: 100%; min-width: 480px; border-collapse: collapse; font
 }
 @media (max-width: 360px) {
   .logo-text { font-size: 15px; }
+}
+/* низкие экраны (ноутбуки, альбомная ориентация) — регистрация без скролла */
+@media (max-height: 760px) {
+  .auth-page { padding: 84px 20px 28px; }
+  .auth-card { padding: 26px 30px; }
+  .auth-title { font-size: 23px; margin: 10px 0 6px; }
+  .auth-sub { font-size: 13px; margin-bottom: 18px; }
+  .auth-card form { margin-top: 18px; }
+  .field { margin-bottom: 12px; }
+  .field label { margin-bottom: 6px; }
+  .input { padding: 11px 13px; }
+  .btn-block { padding: 12px; }
+  .auth-foot { margin-top: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .btn-red:hover { transform: none; }
