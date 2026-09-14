@@ -112,7 +112,10 @@ function renderProfile(payload) {
   var pricingCard = document.getElementById("dashboard-pricing-card");
   var serversCard = document.getElementById("servers-card");
   if (connectCard) connectCard.style.display = st.isActive ? "" : "none";
-  if (onboardingCard) onboardingCard.style.display = st.isActive ? "none" : "";
+  // Показываем инструкцию по подключению всегда — и тем, у кого ещё нет
+  // подписки, и тем, у кого она уже активна (например, чтобы подключить
+  // ещё одно устройство или переустановить приложение).
+  if (onboardingCard) onboardingCard.style.display = "";
   if (pricingCard) pricingCard.style.display = st.isActive ? "none" : "";
   if (serversCard) serversCard.style.display = st.isActive ? "" : "none";
 
