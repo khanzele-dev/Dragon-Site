@@ -264,6 +264,40 @@ body.nav-open { overflow: hidden; }
 }
 .antijam-feature-desc { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
 
+/* ── GUEST ACTIONS (купить/продлить без регистрации) ── */
+.guest-actions { padding-bottom: clamp(56px, 9vw, 100px); }
+.guest-actions-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.guest-action {
+  background: linear-gradient(165deg, var(--bg2), #0d0708);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 30px 26px;
+  display: block;
+  text-decoration: none;
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease, background .25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.guest-action::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--red-grad);
+  opacity: 0; transition: opacity .25s ease;
+}
+.guest-action:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-r);
+  background: linear-gradient(165deg, #170d0e, #0d0708);
+  box-shadow: 0 16px 40px -16px rgba(224,54,42,.35);
+}
+.guest-action:hover::before { opacity: 1; }
+.guest-action-title {
+  font-family: var(--num); font-weight: 700; font-size: 22px;
+  color: #fff; margin-bottom: 8px;
+}
+.guest-action-desc { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+.guest-action-cta { font-size: 13px; font-weight: 600; color: var(--red); }
+
 /* ── PRICING ── */
 .pricing { padding-bottom: clamp(56px, 9vw, 100px); }
 .plans-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -817,6 +851,7 @@ table.pay-table { width: 100%; min-width: 480px; border-collapse: collapse; font
     padding: 28px 14px; text-align: center;
   }
   .plans-row { grid-template-columns: 1fr; }
+  .guest-actions-row { grid-template-columns: 1fr; }
   .reviews-grid { grid-template-columns: 1fr; }
   .cta-box { padding: 36px 24px; text-align: center; justify-content: center; }
   .cta-copy { max-width: none; }

@@ -126,6 +126,41 @@ export async function getRemnawaveSubscription(uuid: string): Promise<RemnawaveS
   return toSubscription(user)
 }
 
+/** Пользователь без телефона — гостевая покупка без регистрации, привязка
+ *  идёт только к id платежа сайта, а не к аккаунту сайта (его вообще нет). */
+export async function createGuestRemnawaveUser(params: { paymentId: string }): Promise<{ uuid: string }> {
+  if (!SQUAD_UUID) {
+    throw new Error("Remnawave squad is not configured (REMNAWAVE_SQUAD_UUID)")
+  }
+  const created = await rw<RemnawaveUser>("/api/users", {
+    method: "POST",
+    body: JSON.stringify({
+      username: `site_guest_${params.paymentId.replace(/[^A-Za-z0-9_-]/g, "").slice(-16)}`,
+      expireAt: new Date().toISOString(),
+      trafficLimitBytes: DEFAULT_TRAFFIC_LIMIT_BYTES,
+      trafficLimitStrategy: DEFAULT_TRAFFIC_STRATEGY,
+      activeInternalSquads: [SQUAD_UUID],
+      description: `Dragon VPN (сайт, без регистрации) · платёж:${params.paymentId}`,
+    }),
+  })
+  return { uuid: created.uuid }
+}
+
+/**
+ * Ищет пользователя Remnawave по short-uuid из его личной ссылки подписки
+ * (".../sub/<shortUuid>") — это единственное, что известно гостю, у которого
+ * нет аккаунта на сайте. Путь эндпоинта не был проверен вручную против
+ * реальной панели (в отличие от остального файла) — проверить на боевой
+ * панели при первом реальном использовании и поправить путь при расхождении,
+ * логика вызова (rw<RemnawaveUser>, toSubscription) от этого не изменится.
+ */
+export async function getRemnawaveUserByShortUuid(
+  shortUuid: string,
+): Promise<RemnawaveSubscription & { uuid: string }> {
+  const user = await rw<RemnawaveUser>(`/api/users/by-short-uuid/${shortUuid}`)
+  return { uuid: user.uuid, ...toSubscription(user) }
+}
+
 export type SubscriptionDuration = { months: number; days: number }
 
 /** Месяцы/дни могут прийти NaN из повреждённого ответа Remnawave или из

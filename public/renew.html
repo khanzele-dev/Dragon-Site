@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Продлить VPN без регистрации — Dragon VPN</title>
+<meta name="description" content="Продлите подписку Dragon VPN без регистрации — вставьте свою ссылку подключения, проверьте статус и оплатите продление.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="icon" type="image/png" href="/icon-dark-32x32.png">
+<link rel="apple-touch-icon" href="/apple-icon.png">
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/index.html" class="logo">
+      <span class="logo-text">Dragon<span>VPN</span></span>
+    </a>
+    <div class="nav-actions">
+      <a href="/login.html" class="nav-link auth-nav-link">Войти</a>
+      <a href="/renew.html" class="nav-link">Продлить VPN</a>
+      <a href="/buy.html" class="nav-buy">Купить VPN</a>
+    </div>
+    <button class="nav-burger" id="nav-burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav-mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile-menu" id="nav-mobile-menu">
+    <a href="/login.html" class="nav-mobile-link auth-nav-link">Войти</a>
+    <a href="/renew.html" class="nav-mobile-link">Продлить VPN</a>
+    <a href="/buy.html" class="nav-mobile-buy">Купить VPN</a>
+    <div class="nav-mobile-divider"></div>
+    <a href="https://t.me/DragonPNBot" class="nav-mobile-link">Политика</a>
+    <a href="https://t.me/DragonPNBot" class="nav-mobile-link">Условия</a>
+    <a href="https://t.me/DragonVPNSupport" class="nav-mobile-link">Поддержка</a>
+  </div>
+</nav>
+
+<main class="dash-body">
+  <div class="wrap">
+    <div class="dash-header">
+      <div>
+        <h1 class="dash-hello">Продлить VPN<span> без регистрации</span></h1>
+        <p class="dash-email">Вставьте свою ссылку подключения (или её ключ) — покажем статус подписки и предложим тарифы на продление.</p>
+      </div>
+    </div>
+
+    <section class="card" style="max-width:560px;">
+      <h2 class="card-title">Ваша ссылка подключения</h2>
+      <form id="renew-lookup-form" novalidate>
+        <div class="field">
+          <label for="renew-key-input">Ссылка или ключ подписки</label>
+          <input class="input" type="text" id="renew-key-input" placeholder="https://.../sub/xxxxxxxx или просто ключ" autocomplete="off" required>
+          <p class="field-error" id="renew-form-error"></p>
+        </div>
+        <button type="submit" class="btn-red btn-block" id="renew-lookup-btn">Проверить</button>
+      </form>
+    </section>
+
+    <div class="dash-grid" style="margin-top:16px;">
+      <section class="card" id="renew-status-card" style="display:none">
+        <h2 class="card-title">
+          Подписка
+          <span class="badge inactive" id="renew-status-badge">—</span>
+        </h2>
+        <p class="sub-plan" id="renew-status-period">—</p>
+        <p class="sub-meta">Действует до: <strong id="renew-status-expire">—</strong></p>
+      </section>
+
+      <section class="card" id="renew-status-card-traffic" style="display:none">
+        <h2 class="card-title">Трафик</h2>
+        <div class="traffic-top">
+          <span class="traffic-used" id="renew-traffic-used">— ГБ</span>
+          <span class="traffic-limit">из <span id="renew-traffic-limit">—</span> ГБ</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="renew-traffic-bar" style="width:0%"></div>
+        </div>
+      </section>
+
+      <section class="card span-2" id="renew-plans-card" style="display:none">
+        <h2 class="card-title">Тарифы продления</h2>
+        <div class="plans-row" data-plans-auto>
+          <p class="plans-empty">Загружаем тарифы…</p>
+        </div>
+      </section>
+    </div>
+
+    <p class="auth-foot" style="margin-top:32px;">Ещё нет подписки? <a href="/buy.html">Купите VPN без регистрации</a> или <a href="/register.html">зарегистрируйтесь</a>.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="foot-inner">
+    <a href="/index.html" class="foot-logo">
+      <span class="logo-text">Dragon<span>VPN</span></span>
+    </a>
+    <p class="foot-copy">© 2026 Dragon VPN</p>
+    <ul class="foot-links">
+      <li><a href="/buy.html">Купить VPN</a></li>
+      <li><a href="/renew.html">Продлить VPN</a></li>
+      <li><a href="https://t.me/DragonPNBot">Политика</a></li>
+      <li><a href="https://t.me/DragonPNBot">Условия</a></li>
+      <li><a href="https://t.me/DragonVPNSupport">Поддержка</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script src="/js/nav.js"></script>
+<script src="/js/subscriptionShared.js"></script>
+<script src="/js/renew.js"></script>
+</body>
+</html>

@@ -31,61 +31,10 @@ async function logoutUser() {
 }
 
 /* ============================================================
-   Форматирование
+   Форматирование, QR, копирование ссылки — вынесено в
+   public/js/subscriptionShared.js (переиспользуется гостевыми страницами
+   покупки/продления). Здесь остаётся только то, что специфично для кабинета.
    ============================================================ */
-function bytesToGB(bytes) { return bytes / (1024 * 1024 * 1024); }
-function fmtDate(iso) {
-  try {
-    return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "long", year: "numeric" });
-  } catch (e) { return iso; }
-}
-/**
- * Сколько месяцев реально осталось до expireAt, а не название последнего
- * купленного тарифа — так продление 1+1+1 месяц честно показывает "3 месяца",
- * а не "1 месяц" (имя последней покупки).
- */
-function monthsRemaining(expireAtIso) {
-  var diffMs = new Date(expireAtIso).getTime() - Date.now();
-  if (diffMs <= 0) return 0;
-  var msPerMonth = 1000 * 60 * 60 * 24 * 30.44;
-  return Math.round(diffMs / msPerMonth);
-}
-
-function pluralMonths(n) {
-  var mod10 = n % 10;
-  var mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return n + " месяц";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return n + " месяца";
-  return n + " месяцев";
-}
-
-/** Сколько дней реально осталось до expireAt — точное число в дополнение к monthsRemaining. */
-function daysRemaining(expireAtIso) {
-  var diffMs = new Date(expireAtIso).getTime() - Date.now();
-  if (diffMs <= 0) return 0;
-  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-}
-
-function pluralDays(n) {
-  var mod10 = n % 10;
-  var mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return n + " день";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return n + " дня";
-  return n + " дней";
-}
-
-function countryFlag(code) {
-  if (!code || code.length !== 2) return "🏳️";
-  var upper = code.toUpperCase();
-  var base = 0x1F1E6;
-  return String.fromCodePoint(base + upper.charCodeAt(0) - 65, base + upper.charCodeAt(1) - 65);
-}
-var STATUS_MAP = {
-  ACTIVE:   { label: "Активна",  isActive: true },
-  LIMITED:  { label: "Лимит",    isActive: false },
-  DISABLED: { label: "Отключена",isActive: false },
-  EXPIRED:  { label: "Истекла",  isActive: false },
-};
 
 /* ============================================================
    Рендер
@@ -164,23 +113,6 @@ function renderProfile(payload) {
 }
 
 var currentSubscriptionUrl = "";
-
-function renderQR(containerId, url) {
-  var container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = "";
-  if (window.QRCode && url) {
-    new window.QRCode(container, {
-      text: url,
-      width: 134,
-      height: 134,
-      colorDark: "#0a0608",
-      colorLight: "#ffffff",
-    });
-  } else {
-    container.textContent = "QR";
-  }
-}
 
 /** Снимает скелетоны: класс на <body> управляет всеми заглушками разом. */
 function clearSkeletons() {
@@ -262,23 +194,6 @@ function renderPayments(payments) {
 /* ============================================================
    Действия
    ============================================================ */
-function initCopy(btnId, inputId) {
-  var btn = document.getElementById(btnId);
-  var input = document.getElementById(inputId);
-  if (!btn || !input) return;
-  btn.addEventListener("click", function () {
-    if (!input.value) return;
-    navigator.clipboard.writeText(input.value).then(function () {
-      var old = btn.textContent;
-      btn.textContent = "Скопировано";
-      setTimeout(function () { btn.textContent = old; }, 1600);
-    }).catch(function () {
-      input.select();
-      document.execCommand("copy");
-    });
-  });
-}
-
 function showLinkBox(hintText) {
   var box = document.getElementById("onboard-link-box");
   var hint = document.getElementById("onboard-link-hint");

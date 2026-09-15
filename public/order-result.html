@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Результат заказа — Dragon VPN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="icon" type="image/png" href="/icon-dark-32x32.png">
+<link rel="apple-touch-icon" href="/apple-icon.png">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/index.html" class="logo">
+      <span class="logo-text">Dragon<span>VPN</span></span>
+    </a>
+    <div class="nav-actions">
+      <a href="/index.html" class="nav-link">На главную</a>
+      <a href="/renew.html" class="nav-link">Продлить VPN</a>
+      <a href="/buy.html" class="nav-buy">Купить VPN</a>
+    </div>
+    <button class="nav-burger" id="nav-burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav-mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile-menu" id="nav-mobile-menu">
+    <a href="/index.html" class="nav-mobile-link">На главную</a>
+    <a href="/renew.html" class="nav-mobile-link">Продлить VPN</a>
+    <a href="/buy.html" class="nav-mobile-buy">Купить VPN</a>
+    <div class="nav-mobile-divider"></div>
+    <a href="https://t.me/DragonPNBot" class="nav-mobile-link">Политика</a>
+    <a href="https://t.me/DragonPNBot" class="nav-mobile-link">Условия</a>
+    <a href="https://t.me/DragonVPNSupport" class="nav-mobile-link">Поддержка</a>
+  </div>
+</nav>
+
+<main class="auth-page">
+  <div class="auth-card" style="max-width:520px;">
+    <a href="/index.html" class="auth-logo">
+      <img src="/img/dragon-logo.png" alt="" class="logo-mark" width="128" height="128" decoding="async">
+      Dragon<span>VPN</span>
+    </a>
+
+    <div id="order-pending">
+      <h1 class="auth-title">Проверяем оплату…</h1>
+      <p class="auth-sub"><span class="spinner"></span> Это может занять до минуты.</p>
+    </div>
+
+    <div id="order-success" style="display:none">
+      <h1 class="auth-title">Оплата прошла успешно</h1>
+      <p class="auth-sub">Тариф: <strong id="order-plan-name">—</strong>. Сохраните эту ссылку — она открывает доступ к вашей подписке, повторно её показать нельзя.</p>
+
+      <div class="sub-link-row">
+        <input class="sub-link-input" id="sub-url" readonly value="">
+        <button class="btn-copy" id="copy-btn">Копировать</button>
+      </div>
+      <div class="qr-box">
+        <div id="qr-code" role="img" aria-label="QR-код для подключения к VPN"></div>
+        <p class="qr-hint">Отсканируйте QR-код в приложении (V2RayTun, Happ, Hiddify и др.), чтобы импортировать подписку автоматически.</p>
+      </div>
+      <div class="actions-row" style="margin-top:18px;">
+        <button type="button" class="btn-ghost add-vpn-btn" data-scheme="happ">Добавить в Happ</button>
+        <button type="button" class="btn-ghost add-vpn-btn" data-scheme="v2raytun">Добавить в V2RayTun</button>
+        <button type="button" class="btn-ghost copy-sub-link">Скопировать ссылку</button>
+      </div>
+      <p class="auth-foot" style="margin-top:20px;">Захотите продлить позже — вставьте эту же ссылку на странице <a href="/renew.html">продления</a>.</p>
+    </div>
+
+    <div id="order-failed" style="display:none">
+      <h1 class="auth-title">Не получилось</h1>
+      <p class="auth-sub" id="order-failed-message">Не удалось подтвердить оплату.</p>
+      <a href="/buy.html" class="btn-red btn-block">Вернуться к тарифам</a>
+    </div>
+  </div>
+</main>
+
+<script src="/js/nav.js"></script>
+<script src="/js/subscriptionShared.js"></script>
+<script src="/js/orderResult.js"></script>
+</body>
+</html>
