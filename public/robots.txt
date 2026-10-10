@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /dashboard.html
+Disallow: /order-result.html
+
+Sitemap: https://dragon-vpn.ru/sitemap.xml

@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="min-h-screen bg-[#0a0608] text-[#e8e0e0]">
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:flex-row lg:gap-8">
         <aside className="shrink-0 lg:w-56">
-          <Link href="/index.html" className="mb-6 block text-lg font-extrabold tracking-wide text-white lg:mb-8">
+          <Link href="/" className="mb-6 block text-lg font-extrabold tracking-wide text-white lg:mb-8">
             DRAGON<span className="text-[#e0362a]">VPN</span>
             <span className="ml-2 align-middle text-[11px] font-medium uppercase tracking-widest text-[#8f7c7a]">admin</span>
           </Link>

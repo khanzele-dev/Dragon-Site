@@ -6,6 +6,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // /index.html и / — одна и та же страница; для поисковиков оставляем
+  // один адрес, иначе главная индексируется дважды.
+  async redirects() {
+    return [{ source: "/index.html", destination: "/", permanent: true }]
+  },
   async rewrites() {
     return {
       beforeFiles: [

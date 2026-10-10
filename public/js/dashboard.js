@@ -88,7 +88,7 @@ function renderProfile(payload) {
     if (st.isActive) {
       primaryBtn.textContent = "Продлить";
       secondaryBtn.textContent = "Сменить тариф";
-      secondaryBtn.setAttribute("href", "/index.html#pricing");
+      secondaryBtn.setAttribute("href", "/#pricing");
     } else {
       primaryBtn.textContent = "Выбрать тариф →";
       secondaryBtn.textContent = "Как подключиться";
@@ -305,7 +305,7 @@ function initLogout() {
   buttons.forEach(function (btn) {
     btn.addEventListener("click", async function () {
       await logoutUser();
-      window.location.href = "/index.html";
+      window.location.href = "/";
     });
   });
 }
