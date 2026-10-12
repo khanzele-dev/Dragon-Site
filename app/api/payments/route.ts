@@ -28,7 +28,9 @@ export const GET = withErrorHandling(async () => {
             ? "pending"
             : p.status === "REFUNDED"
               ? "refunded"
-              : "failed",
+              : p.status === "CANCELED"
+                ? "canceled"
+                : "failed",
     })),
   })
 })

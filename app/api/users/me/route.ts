@@ -4,10 +4,19 @@ import { prisma } from "@/lib/prisma"
 import { getRemnawaveSubscription } from "@/lib/remnawave"
 import { jsonError } from "@/lib/http"
 import { withErrorHandling } from "@/lib/apiHandler"
+import { SESSION_COOKIE } from "@/lib/auth"
 
 export const GET = withErrorHandling(async () => {
   const user = await getCurrentUser()
-  if (!user) return jsonError("Не авторизован", 401)
+  if (!user) {
+    // Кука может быть с валидной подписью, но отозванной (сменили пароль,
+    // удалили пользователя). proxy.ts проверяет только подпись и пускает
+    // такую сессию в кабинет, а со страницы входа отправляет обратно в
+    // кабинет — получался бесконечный круг редиректов. Стираем куку здесь.
+    const res = jsonError("Не авторизован", 401)
+    res.cookies.set(SESSION_COOKIE, "", { maxAge: 0, path: "/" })
+    return res
+  }
 
   let subscription = null
   if (user.remnawaveUuid) {

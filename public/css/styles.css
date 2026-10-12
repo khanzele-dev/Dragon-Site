@@ -1402,3 +1402,40 @@ nav.crumbs {
 @media (prefers-reduced-motion: reduce) {
   .seo-card:hover, .seo-hub-card:hover { transform: none; }
 }
+
+/* ============================================================
+   ЛИЧНЫЙ КАБИНЕТ (body.dash-page) — в стиле гостевых страниц
+   ============================================================ */
+.dash-page .dash-header { align-items: flex-end; margin-bottom: 22px; }
+.dash-title {
+  font-family: var(--guest-f); font-weight: 800;
+  font-size: clamp(32px, 4.4vw, 48px); line-height: 1.05;
+  letter-spacing: -.035em; color: #fff; margin-top: 14px;
+}
+.dash-page .dash-grid { margin-top: 18px; }
+.dash-page .card { border-radius: 18px; padding: 26px; }
+.dash-page .card-title { font-weight: 600; }
+.dash-page .sub-plan, .dash-page .traffic-used, .dash-page .widget-num { font-weight: 800; letter-spacing: -.02em; }
+.dash-page .btn-ghost, .dash-page .btn-copy { border-radius: 11px; }
+.dash-page .sub-link-input { border-radius: 11px; }
+.dash-page .progress { border-radius: 999px; height: 10px; }
+.dash-page .progress-bar { border-radius: 999px; transition: width .8s cubic-bezier(.2,.7,.2,1); }
+
+.dash-alert {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 16px 18px; border-radius: 16px; margin-bottom: 4px;
+  border: 1px solid var(--border-r);
+  background: linear-gradient(120deg, rgba(224,54,42,.16), rgba(224,54,42,.05));
+  animation: guest-rise .5s cubic-bezier(.2,.7,.2,1) both;
+}
+.dash-alert[hidden] { display: none; }
+.dash-alert-text { font-size: 14px; color: #f3d2ce; line-height: 1.55; flex: 1 1 260px; }
+.dash-alert-btn { padding: 10px 20px; font-size: 13px; font-weight: 600; }
+.dash-alert-btn[hidden] { display: none; }
+.pay-status.canceled { color: var(--muted); }
+
+@media (max-width: 720px) {
+  .dash-page .dash-header { align-items: flex-start; }
+  .dash-page .card { padding: 20px 18px; }
+  .dash-alert-btn { width: 100%; justify-content: center; }
+}

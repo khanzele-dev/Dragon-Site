@@ -7,7 +7,7 @@
 <title>Личный кабинет — Dragon VPN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&family=Great+Vibes&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <link rel="icon" type="image/png" href="/icon-dark-32x32.png">
 <link rel="apple-touch-icon" href="/apple-icon.png">
@@ -17,10 +17,11 @@
      Twemoji подменяет на картинки — одинаково выглядит везде. -->
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" integrity="sha384-32KMvAMS4DUBcQtHG6fzADguo/tpN1Nh6BAJa2QqZc6/i0K+YPQE+bWiqBRAWuFs" crossorigin="anonymous"></script>
 </head>
-<body class="is-loading">
+<body class="is-loading guest-page dash-page">
 
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
 
 <!-- NAV -->
 <nav>
@@ -54,9 +55,15 @@
     <!-- Шапка -->
     <div class="dash-header">
       <div>
-        <h1 class="dash-hello">Приветствую тебя<span>!</span></h1>
-        <p class="dash-email"><span class="skel" id="user-phone" style="--skel-w:150px">—</span></p>
+        <span class="guest-eyebrow"><i class="pulse-dot" aria-hidden="true"></i><span class="skel" id="user-phone" style="--skel-w:120px">—</span></span>
+        <h1 class="dash-title">Личный <span class="grad-text">кабинет</span></h1>
       </div>
+      <a href="https://t.me/DragonVPNSupport" class="btn-ghost" target="_blank" rel="noopener">Поддержка</a>
+    </div>
+
+    <div class="dash-alert" id="expiry-alert" hidden>
+      <p class="dash-alert-text" id="expiry-alert-text"></p>
+      <button type="button" class="btn-red dash-alert-btn" data-open-pricing>Продлить</button>
     </div>
 
     <p class="payment-sync-note" id="payment-sync-banner" style="display:none">
@@ -93,26 +100,12 @@
       <section class="card span-2">
         <h2 class="card-title">Управление подпиской</h2>
         <div class="actions-row">
-          <a href="/#pricing" class="btn-red" id="manage-primary-btn">Продлить</a>
-          <a href="/#pricing" class="btn-ghost" id="manage-secondary-btn">Сменить тариф</a>
+          <button type="button" class="btn-red" id="manage-primary-btn" data-open-pricing>Продлить подписку</button>
+          <a href="#onboarding-card" class="btn-ghost" id="manage-secondary-btn">Подключить устройство</a>
         </div>
       </section>
 
-      <!-- Подключение (активная подписка) -->
-      <section class="card span-2" id="connect-card">
-        <h2 class="card-title">Подключение</h2>
-        <div class="sub-link-row">
-          <input class="sub-link-input" id="sub-url" readonly value="">
-          <button class="btn-copy" id="copy-btn">Копировать</button>
-        </div>
-        <div class="qr-box">
-          <!-- Сюда js/dashboard.js вставит QR-код подписочной ссылки -->
-          <div id="qr-code" role="img" aria-label="QR-код для подключения к VPN"></div>
-          <p class="qr-hint">Отсканируйте QR-код в приложении (V2RayTun, Hiddify, Streisand и др.), чтобы импортировать подписку автоматически.</p>
-        </div>
-      </section>
-
-      <!-- Тарифы (нет активной подписки) -->
+      <!-- Тарифы: сразу видны без подписки, у активной открываются кнопкой «Продлить» -->
       <section class="card span-2" id="dashboard-pricing-card" style="display:none">
         <h2 class="card-title">Тарифы</h2>
         <p class="card-desc" id="pricing-card-desc">Выберите тариф, чтобы начать пользоваться VPN.</p>
@@ -124,8 +117,22 @@
         </div>
       </section>
 
+      <!-- Подключение (активная подписка) -->
+      <section class="card span-2" id="connect-card" style="display:none">
+        <h2 class="card-title">Подключение</h2>
+        <div class="sub-link-row">
+          <input class="sub-link-input" id="sub-url" readonly value="" aria-label="Ссылка подключения">
+          <button class="btn-copy" id="copy-btn">Копировать</button>
+        </div>
+        <div class="qr-box">
+          <!-- Сюда js/dashboard.js вставит QR-код подписочной ссылки -->
+          <div id="qr-code" role="img" aria-label="QR-код для подключения к VPN"></div>
+          <p class="qr-hint">Отсканируйте QR-код в Happ (или V2RayTun), чтобы добавить подписку автоматически. Одна ссылка — для всех ваших устройств.</p>
+        </div>
+      </section>
+
       <!-- Как подключиться -->
-      <section class="card span-2" id="onboarding-card" style="display:none">
+      <section class="card span-2" id="onboarding-card">
         <h2 class="card-title">Как подключиться</h2>
 
         <div class="device-grid" id="platform-switch">
@@ -343,7 +350,7 @@
       </section>
 
       <!-- Серверы (активная подписка) -->
-      <section class="card span-2" id="servers-card">
+      <section class="card span-2" id="servers-card" style="display:none">
         <h2 class="card-title">Серверы</h2>
         <div class="servers-row">
           <div>

@@ -36,6 +36,7 @@ export async function createYookassaPayment(params: {
     throw new Error("YooKassa is not configured yet")
   }
   const res = await fetch(`${API_BASE}/payments`, {
+    signal: AbortSignal.timeout(10_000),
     method: "POST",
     headers: {
       Authorization: authHeader(),
@@ -64,6 +65,7 @@ export async function createYookassaPayment(params: {
  */
 export async function fetchYookassaPayment(paymentId: string): Promise<YookassaPayment> {
   const res = await fetch(`${API_BASE}/payments/${paymentId}`, {
+    signal: AbortSignal.timeout(10_000),
     headers: { Authorization: authHeader() },
     cache: "no-store",
   })
@@ -83,6 +85,7 @@ export type YookassaRefund = {
 /** Та же логика, что и у fetchYookassaPayment — телу вебхука не доверяем, сверяем по API. */
 export async function fetchYookassaRefund(refundId: string): Promise<YookassaRefund> {
   const res = await fetch(`${API_BASE}/refunds/${refundId}`, {
+    signal: AbortSignal.timeout(10_000),
     headers: { Authorization: authHeader() },
     cache: "no-store",
   })

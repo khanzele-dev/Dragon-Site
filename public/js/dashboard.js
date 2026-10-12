@@ -1,6 +1,6 @@
 /* ============================================================
    dashboard.js — логика личного кабинета
-   Доступ к странице уже проверен на edge (middleware.ts) по httpOnly-куке.
+   Доступ к странице уже проверен на edge (proxy.ts) по httpOnly-куке.
    Здесь только подгрузка данных профиля/серверов/платежей через API
    и обработка 401 (сессия истекла/отозвана) на всякий случай.
    ============================================================ */
@@ -41,6 +41,7 @@ async function logoutUser() {
    ============================================================ */
 function renderProfile(payload) {
   document.getElementById("user-phone").textContent = payload.user.phone || "";
+  showAdminLink(payload.user.role === "ADMIN");
 
   var sub = payload.subscription;
   var st = STATUS_MAP[sub && sub.status] || { label: "Нет подписки", isActive: false };
@@ -52,7 +53,8 @@ function renderProfile(payload) {
     ? (monthsRemaining(sub.expireAt) > 0
         ? pluralMonths(monthsRemaining(sub.expireAt)) + " (" + pluralDays(daysRemaining(sub.expireAt)) + ")"
         : pluralDays(daysRemaining(sub.expireAt)))
-    : "—";
+    : "Нет подписки";
+  renderExpiryAlert(sub, st);
   document.getElementById("sub-expire").textContent = sub ? fmtDate(sub.expireAt) : "—";
   document.getElementById("sub-status").textContent = st.label;
 
@@ -61,11 +63,12 @@ function renderProfile(payload) {
   var pricingCard = document.getElementById("dashboard-pricing-card");
   var serversCard = document.getElementById("servers-card");
   toggleCard(connectCard, st.isActive);
-  // Показываем инструкцию по подключению всегда — и тем, у кого ещё нет
-  // подписки, и тем, у кого она уже активна (например, чтобы подключить
-  // ещё одно устройство или переустановить приложение).
+  // Инструкция по подключению видна всегда (и в разметке тоже, чтобы не
+  // мигать) — и тем, у кого ещё нет подписки, и тем, у кого она активна.
   toggleCard(onboardingCard, true);
-  toggleCard(pricingCard, !st.isActive);
+  // У активной подписки тарифы открываются кнопкой «Продлить» — если
+  // пользователь уже раскрыл их, повторная загрузка профиля их не прячет.
+  if (!st.isActive) toggleCard(pricingCard, true);
   toggleCard(serversCard, st.isActive);
 
   var pricingDesc = document.getElementById("pricing-card-desc");
@@ -83,24 +86,13 @@ function renderProfile(payload) {
   });
 
   var primaryBtn = document.getElementById("manage-primary-btn");
-  var secondaryBtn = document.getElementById("manage-secondary-btn");
-  if (primaryBtn && secondaryBtn) {
-    if (st.isActive) {
-      primaryBtn.textContent = "Продлить";
-      secondaryBtn.textContent = "Сменить тариф";
-      secondaryBtn.setAttribute("href", "/#pricing");
-    } else {
-      primaryBtn.textContent = "Выбрать тариф →";
-      secondaryBtn.textContent = "Как подключиться";
-      secondaryBtn.setAttribute("href", "#onboarding-card");
-    }
-  }
+  if (primaryBtn) primaryBtn.textContent = sub ? "Продлить подписку" : "Выбрать тариф";
 
   var usedGB = sub ? bytesToGB(sub.trafficUsedBytes) : 0;
   var limitGB = sub ? bytesToGB(sub.trafficLimitBytes) : 0;
   var pct = limitGB > 0 ? Math.min(100, (usedGB / limitGB) * 100) : 0;
-  document.getElementById("traffic-used").textContent = usedGB.toFixed(1) + " ГБ";
-  document.getElementById("traffic-limit").textContent = limitGB.toFixed(0);
+  document.getElementById("traffic-used").textContent = sub ? usedGB.toFixed(1) + " ГБ" : "—";
+  document.getElementById("traffic-limit").textContent = sub ? limitGB.toFixed(0) : "—";
   document.getElementById("traffic-bar").style.width = pct.toFixed(1) + "%";
   document.getElementById("traffic-hint").textContent = sub
     ? "Осталось " + Math.max(0, limitGB - usedGB).toFixed(1) + " ГБ · использовано " + pct.toFixed(0) + "%"
@@ -113,6 +105,50 @@ function renderProfile(payload) {
 }
 
 var currentSubscriptionUrl = "";
+
+/** Плашка над карточками: подписка скоро закончится или уже не активна. */
+function renderExpiryAlert(sub, st) {
+  var alertBox = document.getElementById("expiry-alert");
+  var text = document.getElementById("expiry-alert-text");
+  if (!alertBox || !text) return;
+  var message = "";
+  if (sub && st.isActive) {
+    var days = daysRemaining(sub.expireAt);
+    if (days <= 3) message = "Подписка закончится через " + pluralDays(days) + ". Продлите заранее — ссылка подключения останется прежней.";
+  } else if (sub) {
+    message = "Подписка не активна (" + st.label.toLowerCase() + "). Продлите её, чтобы VPN снова заработал.";
+  }
+  text.textContent = message;
+  alertBox.querySelector(".dash-alert-btn").hidden = false;
+  alertBox.hidden = !message;
+}
+
+/** Администратору — ссылка в админку в шапке (в меню и на мобильном). */
+function showAdminLink(isAdmin) {
+  if (!isAdmin || document.querySelector(".admin-nav-link")) return;
+  [
+    { parent: ".nav-actions", cls: "nav-link admin-nav-link" },
+    { parent: ".nav-mobile-menu", cls: "nav-mobile-link admin-nav-link" },
+  ].forEach(function (spot) {
+    var parent = document.querySelector(spot.parent);
+    if (!parent) return;
+    var a = el("a", spot.cls, "Админка");
+    a.href = "/admin";
+    parent.insertBefore(a, parent.firstChild);
+  });
+}
+
+/** Кнопки «Продлить» раскрывают тарифы прямо в кабинете. */
+function initOpenPricing() {
+  document.querySelectorAll("[data-open-pricing]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var card = document.getElementById("dashboard-pricing-card");
+      if (!card) return;
+      toggleCard(card, true);
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
 
 /** Снимает скелетоны: класс на <body> управляет всеми заглушками разом. */
 function clearSkeletons() {
@@ -149,6 +185,13 @@ function renderNodes(nodes) {
   var flagsEl = document.getElementById("servers-flags");
   if (!countEl || !flagsEl) return;
 
+  // Пустой список — это почти всегда ошибка панели (например, у API-токена
+  // нет доступа к /api/nodes), а не «0 серверов». Не пугаем нулём — прячем блок.
+  if (!nodes.length) {
+    toggleCard(document.getElementById("servers-card"), false);
+    return;
+  }
+
   countEl.textContent = String(nodes.length);
 
   flagsEl.innerHTML = "";
@@ -170,7 +213,7 @@ function renderNodes(nodes) {
 function renderPayments(payments) {
   var body = document.getElementById("pay-table-body");
   body.innerHTML = "";
-  var statusLabel = { paid: "Оплачен", pending: "В обработке", failed: "Ошибка", refunded: "Возврат" };
+  var statusLabel = { paid: "Оплачен", pending: "В обработке", failed: "Ошибка", refunded: "Возврат", canceled: "Отменён" };
   if (!payments.length) {
     var emptyRow = document.createElement("tr");
     var emptyCell = el("td", null, "Пока нет платежей");
@@ -276,16 +319,18 @@ function initTvShowLink() {
    ============================================================ */
 async function syncPendingPayment() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get("payment") !== "pending") return;
+  if (params.get("payment") !== "pending") return null;
 
   var banner = document.getElementById("payment-sync-banner");
   if (banner) banner.style.display = "flex";
 
+  var finalStatus = null;
   for (var attempt = 0; attempt < 6; attempt++) {
     try {
       var res = await fetch("/api/payments/sync", { method: "POST", credentials: "same-origin" });
       if (res.ok) {
         var data = await res.json();
+        finalStatus = data.status;
         if (data.status === "SUCCEEDED" || data.status === "CANCELED" || data.status === null) break;
       }
     } catch (e) {
@@ -298,6 +343,14 @@ async function syncPendingPayment() {
   var url = new URL(window.location.href);
   url.searchParams.delete("payment");
   window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  return finalStatus;
+}
+
+/** Сессия недействительна: стираем куку и уходим на вход. Без logout
+ *  proxy.ts увидел бы куку с валидной подписью и вернул бы в кабинет. */
+async function handleUnauthorized() {
+  await logoutUser();
+  window.location.href = "/login.html";
 }
 
 function initLogout() {
@@ -322,10 +375,18 @@ document.addEventListener("DOMContentLoaded", async function () {
   initWindowsAltToggle();
   initTvShowLink();
   initLogout();
+  initOpenPricing();
+
+  // Сверка оплаты после возврата с ЮKassa идёт параллельно с загрузкой —
+  // раньше кабинет до 9 секунд стоял на скелетонах, пока она не закончится.
+  // Если оплата подтвердилась, перечитываем профиль и платежи.
+  syncPendingPayment().then(function (status) {
+    if (status !== "SUCCEEDED") return;
+    fetchUserProfile().then(renderProfile).catch(function () {});
+    fetchPayments().then(renderPayments).catch(function () {});
+  });
 
   try {
-    await syncPendingPayment();
-
     // Три запроса стартуют разом, а не цепочкой — данные приезжают быстрее,
     // и каждый блок заменяет свой скелетон, как только пришёл его ответ.
     var nodesPromise = fetchNodes();
@@ -352,12 +413,19 @@ document.addEventListener("DOMContentLoaded", async function () {
   } catch (err) {
     console.log("[dashboard] load error:", err);
     if (err.message === "unauthorized") {
-      window.location.href = "/login.html";
+      await handleUnauthorized();
       return;
     }
     // Не оставляем страницу мерцать скелетонами, если данные не пришли.
     clearSkeletons();
     renderPayments([]);
     document.getElementById("servers-flags").innerHTML = "";
+    var alertBox = document.getElementById("expiry-alert");
+    if (alertBox) {
+      document.getElementById("expiry-alert-text").textContent =
+        "Не удалось загрузить данные подписки. Обновите страницу через минуту или напишите в поддержку.";
+      alertBox.querySelector(".dash-alert-btn").hidden = true;
+      alertBox.hidden = false;
+    }
   }
 });

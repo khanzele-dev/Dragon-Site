@@ -32,9 +32,14 @@ function assertConfigured() {
   }
 }
 
+// Без таймаута подвисшая панель держит запрос до бесконечности — личный
+// кабинет при этом висит на скелетонах. 8 с хватает живой панели с запасом.
+const REQUEST_TIMEOUT_MS = 8000
+
 async function rw<T>(path: string, init?: RequestInit): Promise<T> {
   assertConfigured()
   const res = await fetch(`${BASE_URL}${path}`, {
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     ...init,
     headers: {
       Authorization: `Bearer ${API_TOKEN}`,
