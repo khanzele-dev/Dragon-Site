@@ -5,6 +5,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/session"
 import { ensureRemnawaveUser, extendRemnawaveSubscription } from "@/lib/remnawave"
+import { describeError } from "../_components/describeError"
 
 export type ActionState = { ok: boolean; message: string } | null
 
@@ -30,7 +31,7 @@ export async function grantDays(userId: string, _prev: ActionState, formData: Fo
     await extendRemnawaveSubscription(uuid, { months: 0, days: parsed.data })
   } catch (err) {
     console.error("[admin] grantDays failed", err)
-    return { ok: false, message: "Remnawave не ответил — попробуйте ещё раз" }
+    return { ok: false, message: describeError(err) }
   }
 
   console.info(`[admin] ${admin.phone} granted ${parsed.data}d to ${user.phone}`)

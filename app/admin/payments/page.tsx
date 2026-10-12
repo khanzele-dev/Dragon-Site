@@ -1,10 +1,11 @@
 import Link from "next/link"
-import { RefreshCw, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import type { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { Badge, DataTable, EmptyRow, PageHeader, Pagination, Panel, StatCard, buttonGhost, fieldClass, inputClass } from "../_components/ui"
 import { PAYMENT_STATUS, PAYMENT_TYPE, fmtDateTime, rub } from "../_components/format"
 import { reconcilePayment } from "./actions"
+import { ReconcileButton } from "./ReconcileButton"
 
 const PAGE_SIZE = 30
 const STATUSES = ["SUCCEEDED", "PENDING", "CANCELED", "FAILED", "REFUNDED"] as const
@@ -155,16 +156,7 @@ export default async function AdminPaymentsPage({
                 </td>
                 <td className="sticky right-0 bg-gradient-to-l from-[#0e0809] from-70% to-transparent px-4 py-3 text-right">
                   {canReconcile && (
-                    <form action={reconcilePayment.bind(null, p.id)}>
-                      <button
-                        type="submit"
-                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-[#e8e0e0] transition hover:border-[#e0362a]/50 hover:text-white"
-                        title="Сверить статус с ЮKassa и выдать VPN, если оплата прошла"
-                      >
-                        <RefreshCw className="size-3.5" aria-hidden />
-                        {stuck ? "Повторить выдачу" : "Сверить"}
-                      </button>
-                    </form>
+                    <ReconcileButton action={reconcilePayment.bind(null, p.id)} label={stuck ? "Повторить выдачу" : "Сверить"} />
                   )}
                 </td>
               </tr>

@@ -1,17 +1,35 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/session"
 
-export async function togglePlanActive(planId: string) {
-  const admin = await requireAdmin()
-  if (!admin) throw new Error("Не авторизован")
-
-  const plan = await prisma.plan.findUniqueOrThrow({ where: { id: planId } })
-  await prisma.plan.update({ where: { id: planId }, data: { isActive: !plan.isActive } })
+// Результат действия возвращаем через ?ok= / ?error= в адресе, а не throw:
+// в production Next.js прячет текст брошенной ошибки, и вместо «Нельзя
+// удалить тариф…» админ видел «Minified React error #441».
+function done(message: string): never {
   revalidatePath("/admin/plans")
+  redirect(`/admin/plans?ok=${encodeURIComponent(message)}`)
+}
+
+function fail(message: string): never {
+  redirect(`/admin/plans?error=${encodeURIComponent(message)}`)
+}
+
+async function assertAdmin() {
+  const admin = await requireAdmin()
+  if (!admin) fail("Нет доступа — войдите заново")
+}
+
+export async function togglePlanActive(planId: string) {
+  await assertAdmin()
+
+  const plan = await prisma.plan.findUnique({ where: { id: planId } })
+  if (!plan) fail("Тариф не найден")
+  await prisma.plan.update({ where: { id: planId }, data: { isActive: !plan.isActive } })
+  done(plan.isActive ? `«${plan.name}» скрыт с сайта` : `«${plan.name}» снова на сайте`)
 }
 
 // Пустая строка/отсутствие поля → null (нет бейджа на карточке).
@@ -51,19 +69,17 @@ function readPlanFields(formData: FormData) {
 /** Создаёт новый тариф (например, тестовый на несколько дней) прямо из
  *  админки — раньше это делалось только через prisma studio/seed-скрипт. */
 export async function createPlan(formData: FormData) {
-  const admin = await requireAdmin()
-  if (!admin) throw new Error("Не авторизован")
+  await assertAdmin()
 
   const parsed = createPlanSchema.safeParse({ ...readPlanFields(formData), code: formData.get("code") })
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Некорректные данные тарифа")
-  }
-  if (parsed.data.months === 0 && parsed.data.days === 0) {
-    throw new Error("Укажите длительность тарифа (месяцы и/или дни)")
-  }
+  if (!parsed.success) fail(parsed.error.issues[0]?.message ?? "Некорректные данные тарифа")
+  if (parsed.data.months === 0 && parsed.data.days === 0) fail("Укажите длительность тарифа (месяцы и/или дни)")
+
+  const exists = await prisma.plan.findUnique({ where: { code: parsed.data.code } })
+  if (exists) fail(`Тариф с кодом «${parsed.data.code}» уже есть`)
 
   await prisma.plan.create({ data: parsed.data })
-  revalidatePath("/admin/plans")
+  done(`Тариф «${parsed.data.name}» создан`)
 }
 
 /** Редактирует существующий тариф — название, бейдж, длительность, цену,
@@ -71,31 +87,24 @@ export async function createPlan(formData: FormData) {
  *  эти данные из /api/plans при каждой загрузке, так что изменения здесь
  *  сразу видны на сайте, без отдельного шага деплоя. */
 export async function updatePlan(planId: string, formData: FormData) {
-  const admin = await requireAdmin()
-  if (!admin) throw new Error("Не авторизован")
+  await assertAdmin()
 
   const parsed = planFieldsSchema.safeParse(readPlanFields(formData))
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Некорректные данные тарифа")
-  }
-  if (parsed.data.months === 0 && parsed.data.days === 0) {
-    throw new Error("Укажите длительность тарифа (месяцы и/или дни)")
-  }
+  if (!parsed.success) fail(parsed.error.issues[0]?.message ?? "Некорректные данные тарифа")
+  if (parsed.data.months === 0 && parsed.data.days === 0) fail("Укажите длительность тарифа (месяцы и/или дни)")
 
   await prisma.plan.update({ where: { id: planId }, data: parsed.data })
-  revalidatePath("/admin/plans")
+  done(`Тариф «${parsed.data.name}» сохранён`)
 }
 
-/** Удаляет тариф. Если по нему уже были платежи — Prisma откажет из-за
- *  внешнего ключа Payment.planId, и это правильно: историю платежей терять нельзя. */
+/** Удаляет тариф. Если по нему уже были платежи — удалять нельзя: историю
+ *  платежей терять нельзя (Payment.planId ссылается на тариф). */
 export async function deletePlan(planId: string) {
-  const admin = await requireAdmin()
-  if (!admin) throw new Error("Не авторизован")
+  await assertAdmin()
 
-  try {
-    await prisma.plan.delete({ where: { id: planId } })
-  } catch {
-    throw new Error("Нельзя удалить тариф, по которому уже были платежи — скройте его вместо удаления")
-  }
-  revalidatePath("/admin/plans")
+  const payments = await prisma.payment.count({ where: { planId } })
+  if (payments > 0) fail("Нельзя удалить тариф, по которому уже были платежи — скройте его вместо удаления")
+
+  const plan = await prisma.plan.delete({ where: { id: planId } })
+  done(`Тариф «${plan.name}» удалён`)
 }

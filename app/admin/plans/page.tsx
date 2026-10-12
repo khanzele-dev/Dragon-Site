@@ -5,7 +5,12 @@ import { rub } from "../_components/format"
 
 const small = `${fieldClass} h-8 w-full px-2`
 
-export default async function AdminPlansPage() {
+export default async function AdminPlansPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ok?: string; error?: string }>
+}) {
+  const { ok, error } = await searchParams
   const since30 = new Date(Date.now() - 30 * 86_400_000)
   const [plans, sales, sales30] = await Promise.all([
     prisma.plan.findMany({ orderBy: { sortOrder: "asc" } }),
@@ -21,6 +26,17 @@ export default async function AdminPlansPage() {
         title="Тарифы"
         description="Изменения сразу видны на сайте и в личном кабинете — они берут список из /api/plans. Скрытый тариф пропадает с сайта, но история платежей по нему сохраняется."
       />
+
+      {(ok || error) && (
+        <p
+          role="status"
+          className={`mb-4 rounded-xl px-4 py-3 text-sm ring-1 ring-inset ${
+            error ? "bg-[#e0362a]/10 text-[#ffd0ca] ring-[#e0362a]/35" : "bg-emerald-500/10 text-emerald-300 ring-emerald-500/25"
+          }`}
+        >
+          {error ?? ok}
+        </p>
+      )}
 
       <Panel bodyClassName="">
         <div className="overflow-x-auto">
